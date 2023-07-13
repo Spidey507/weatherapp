@@ -25,17 +25,17 @@ def weather_forecast_view(request):
         
         forecast_context = {
             'location': location,
-            'forecast': []
+            'forecast': [
+                {
+                    'date': forecast_day['date'],
+                    'temperature': forecast_day['day']['avgtemp_c'],
+                    'condition': forecast_day['day']['condition']['text']
+                }
+                for forecast_day in forecast_data['forecast']['forecastday']
+            ]
         }
-        
-        for forecast_day in forecast_data['forecast']['forecastday']:
-            forecast_context['forecast'].append({
-                'date': forecast_day['date'],
-                'temperature': forecast_day['day']['avgtemp_c'],
-                'condition': forecast_day['day']['condition']['text']
-            })
-        
+
         return render(request, 'weather/weather.html', {'weather': weather_context, 'forecast': forecast_context})
     else:
-        # Handle any errors
+        # error.html doesnt exists yet, nothing fails at the moment but will eventually. Ill create it later.
         return render(request, 'weather/error.html')
