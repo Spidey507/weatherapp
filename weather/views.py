@@ -3,40 +3,39 @@ from django.shortcuts import render
 
 api_key = 'a0f1f431acc64ad8a4d201219231007'
 
-def weather_view(request):
-    location = ''
+def weather_forecast_view(request):
+    location = 'Tokyo'
+    days = 3
 
-    api_url = f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={location}"
-
-    response = requests.get(api_url)
-    if response.status_code == 200:
-        data = response.json()
-        # Process the data as needed
-        context = {
-            'location': data['location']['name'],
-            'temperature': data['current']['temp_c'],
-            'condition': data['current']['condition']['text']
+    weather_api_url = f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={location}"
+    forecast_api_url = f"http://api.weatherapi.com/v1/forecast.json?key={api_key}&q={location}&days={days}"
+    
+    weather_response = requests.get(weather_api_url)
+    forecast_response = requests.get(forecast_api_url)
+    
+    if weather_response.status_code == 200 and forecast_response.status_code == 200:
+        weather_data = weather_response.json()
+        forecast_data = forecast_response.json()
+        
+        weather_context = {
+            'location': weather_data['location']['name'],
+            'temperature': weather_data['current']['temp_c'],
+            'condition': weather_data['current']['condition']['text']
         }
-        return render(request, 'weather/weather.html', context)
+        
+        forecast_context = {
+            'location': location,
+            'forecast': []
+        }
+        
+        for forecast_day in forecast_data['forecast']['forecastday']:
+            forecast_context['forecast'].append({
+                'date': forecast_day['date'],
+                'temperature': forecast_day['day']['avgtemp_c'],
+                'condition': forecast_day['day']['condition']['text']
+            })
+        
+        return render(request, 'weather/weather.html', {'weather': weather_context, 'forecast': forecast_context})
     else:
         # Handle any errors
         return render(request, 'weather/error.html')
-
-#ESTA VAINA ACA ABAJO NO FUNCIONA POR AHORA, ME ABURRI A MITAD DE CAMINO, LUEGO LO ARREGLO.
-def forecast_view(request):
-    location = '' 
-    days = 2
-    api_url = f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={location}&days={days}"
-    
-    response = requests.get(api_url)
-    if response.status_code == 200: 
-        data = response.json()
-        context = {
-            'location': data['location']['name'],
-            'temperature': data['current']['temp_c'],
-            'condition': data['current']['condition']['text']
-        }
-        return render(request, 'weather/weather.html', context)
-    else:
-        return render(request, 'weather/error.html')
-    
