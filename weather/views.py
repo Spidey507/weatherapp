@@ -1,10 +1,11 @@
 import requests
 from django.shortcuts import render
 
+
 api_key = 'a0f1f431acc64ad8a4d201219231007'
 
 def weather_forecast_view(request):
-    location = 'Tokyo'
+    location = request.GET.get('city')
     days = 3
 
     weather_api_url = f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={location}"
@@ -19,6 +20,7 @@ def weather_forecast_view(request):
         
         weather_context = {
             'location': weather_data['location']['name'],
+            'country': weather_data['location']['country'],
             'temperature': weather_data['current']['temp_c'],
             'condition': weather_data['current']['condition']['text']
         }

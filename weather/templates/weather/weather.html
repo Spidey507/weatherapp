@@ -1,13 +1,27 @@
-<h1>Weather Forecast</h1>
-<h2>Current Weather</h2>
-<p>Location: {{ weather.location }}</p>
-<p>Temperature: {{ weather.temperature }}°C</p>
-<p>Condition: {{ weather.condition }}</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Forecast</title>
+</head>
+<script>
 
-<h2>Forecast</h2>
-{% for forecast_item in forecast.forecast %}
-  <p>Date: {{ forecast_item.date }}</p>
-  <p>Temperature: {{ forecast_item.temperature }}°C</p>
-  <p>Condition: {{ forecast_item.condition }}</p>
-  <hr>
-{% endfor %}
+</script>
+<body>
+  <h1>Weather Forecast</h1>
+  <form action="{% url 'weather:weather_forecast' %}" method="GET">
+    <input type="text" name="city" placeholder="Enter city">
+    <button type="submit">Search</button>
+  </form>
+  <h2>Current Weather</h2>
+  <p>Location: {{ weather.location }}, {{ weather.country }}</p>
+  <p>Temperature: {{ weather.temperature }}°C</p>
+  <p>Condition: {{ weather.condition }}</p>
+  
+  <h2>Forecast</h2>
+  {% for forecast_item in forecast.forecast %}
+    <p>Date: {{ forecast_item.date }}</p>
+    <p>Temperature: {{ forecast_item.temperature }}°C</p>
+    <p>Condition: {{ forecast_item.condition }}</p>
+    <hr>
+  {% endfor %}
+</body>
