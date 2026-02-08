@@ -1,0 +1,893 @@
+/* =========================================
+   RESET & CUSTOM PROPERTIES
+   ========================================= */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-from: #191919;
+  --bg-via: #1e1e1e;
+  --bg-to: #252522;
+  --glass: rgba(255, 255, 255, 0.035);
+  --glass-hover: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-border-light: rgba(255, 255, 255, 0.12);
+  --shadow: rgba(0, 0, 0, 0.2);
+  --text: rgba(255, 255, 255, 0.9);
+  --text-2: rgba(255, 255, 255, 0.55);
+  --text-3: rgba(255, 255, 255, 0.35);
+  --accent: #D4956B;
+  --accent-warm: #C17A52;
+  --accent-blue: #7EADD4;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(160deg, var(--bg-from) 0%, var(--bg-via) 40%, var(--bg-to) 100%);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background 1.2s ease;
+}
+
+body.night {
+  --bg-from: #111111;
+  --bg-via: #151515;
+  --bg-to: #1a1a18;
+}
+
+/* --- Ambient background glow --- */
+body::before {
+  content: '';
+  position: fixed;
+  top: -30%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(212,149,107,0.07) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(193,122,82,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
+}
+
+/* =========================================
+   HEADER — Notion page-title style
+   ========================================= */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.brand-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+
+.brand-name span { color: var(--accent); }
+
+.search-wrapper {
+  position: relative;
+  width: 380px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.88rem;
+  backdrop-filter: blur(14px);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.search-input::placeholder { color: var(--text-3); }
+
+.search-input:focus {
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 0 0 3px rgba(212,149,107,0.15);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--text-3);
+}
+
+/* --- Search dropdown loading state --- */
+.search-loading {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-2);
+  font-size: 0.85rem;
+}
+
+.search-loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.08);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+.search-loading-text em {
+  color: var(--text);
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* --- Search results dropdown --- */
+.search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(30, 30, 30, 0.96);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  z-index: 100;
+  display: none;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+}
+
+.search-results.visible { display: block; }
+
+.search-result-item {
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: rgba(255,255,255,0.05); }
+
+.search-result-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.search-result-detail {
+  font-size: 0.76rem;
+  color: var(--text-3);
+  margin-top: 1px;
+}
+
+/* --- Location button --- */
+.btn-location {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-location:hover {
+  background: var(--glass-hover);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.btn-location .btn-emoji {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* =========================================
+   STATE SCREENS
+   ========================================= */
+.state-message {
+  text-align: center;
+  padding: 100px 20px 80px;
+}
+
+.state-message .state-icon {
+  font-size: 3.5rem;
+  margin-bottom: 18px;
+  opacity: 0.6;
+}
+
+.state-message h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.state-message p {
+  color: var(--text-2);
+  font-size: 0.95rem;
+  max-width: 360px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255,255,255,0.07);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin: 0 auto 18px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =========================================
+   GLASS CARD BASE
+   ========================================= */
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 24px var(--shadow);
+  transition: border-color 0.3s;
+}
+
+.card:hover {
+  border-color: var(--glass-border-light);
+}
+
+/* =========================================
+   WEATHER DASHBOARD (hidden until data)
+   ========================================= */
+.dashboard {
+  display: none;
+  gap: 16px;
+}
+
+.dashboard.visible {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  animation: fadeUp 0.5s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   HERO CARD (current weather)
+   ========================================= */
+.hero-card {
+  --hue: 212,149,107;
+  --hue-alt: 190,130,90;
+  grid-column: 1 / -1;
+  padding: 32px 36px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(var(--hue), 0.12);
+}
+
+/* --- Lava lamp blobs --- */
+.hero-lava {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.lava-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(55px);
+  will-change: transform;
+}
+
+.blob-1 {
+  width: 260px;
+  height: 260px;
+  background: rgba(var(--hue), 0.18);
+  top: -70px;
+  left: -50px;
+  animation: lava1 14s ease-in-out infinite;
+}
+
+.blob-2 {
+  width: 200px;
+  height: 200px;
+  background: rgba(var(--hue-alt), 0.15);
+  bottom: -60px;
+  right: -40px;
+  animation: lava2 18s ease-in-out infinite;
+}
+
+.blob-3 {
+  width: 180px;
+  height: 180px;
+  background: rgba(var(--hue), 0.10);
+  top: 10%;
+  left: 45%;
+  animation: lava3 22s ease-in-out infinite;
+}
+
+@keyframes lava1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  20%  { transform: translate(110px, 40px) scale(1.15); }
+  40%  { transform: translate(70px, 100px) scale(0.9); }
+  60%  { transform: translate(160px, 60px) scale(1.05); }
+  80%  { transform: translate(-20px, 70px) scale(1.12); }
+}
+
+@keyframes lava2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(-90px, -50px) scale(1.2); }
+  50%  { transform: translate(-50px, -100px) scale(0.85); }
+  75%  { transform: translate(-120px, -30px) scale(1.08); }
+}
+
+@keyframes lava3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  15%  { transform: translate(-70px, 35px) scale(1.1); }
+  35%  { transform: translate(50px, -25px) scale(0.8); }
+  55%  { transform: translate(90px, 50px) scale(1.2); }
+  75%  { transform: translate(-30px, -45px) scale(0.92); }
+}
+
+/* Glass overlay sitting between blobs and content */
+.hero-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(25, 25, 25, 0.52);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  transition: background 1s ease;
+}
+
+body.night .hero-card::before {
+  background: rgba(17, 17, 17, 0.58);
+}
+
+.hero-left { flex: 1; min-width: 0; position: relative; z-index: 2; }
+
+.hero-location {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.hero-city {
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.hero-country {
+  font-size: 0.88rem;
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.hero-condition {
+  font-size: 0.92rem;
+  color: var(--text-2);
+  margin-bottom: 20px;
+}
+
+.hero-temp-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.hero-icon {
+  font-size: 4.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+}
+
+.hero-temp {
+  font-size: 5.5rem;
+  font-weight: 200;
+  letter-spacing: -5px;
+  line-height: 1;
+}
+
+.hero-temp-unit {
+  font-size: 2rem;
+  font-weight: 300;
+  vertical-align: super;
+  letter-spacing: 0;
+  color: var(--text-2);
+}
+
+.hero-right {
+  text-align: right;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  position: relative;
+  z-index: 2;
+}
+
+.clock-time {
+  font-size: 2.6rem;
+  font-weight: 200;
+  letter-spacing: 1.5px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.clock-label {
+  font-size: 0.68rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
+.clock-date {
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+/* =========================================
+   DETAILS GRID
+   ========================================= */
+.details-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.detail-card {
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-emoji {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.detail-sub {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-top: -4px;
+}
+
+/* =========================================
+   HOURLY FORECAST
+   ========================================= */
+.hourly-section {
+  grid-column: 1 / -1;
+}
+
+.section-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-3);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.hourly-card {
+  padding: 2px;
+}
+
+.hourly-scroll {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 14px 10px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hourly-scroll::-webkit-scrollbar { height: 4px; }
+.hourly-scroll::-webkit-scrollbar-track { background: transparent; }
+.hourly-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+}
+
+.hourly-item {
+  flex-shrink: 0;
+  width: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 6px;
+  border-radius: var(--radius-sm);
+  scroll-snap-align: start;
+  transition: background 0.15s;
+}
+
+.hourly-item:hover { background: rgba(255,255,255,0.04); }
+
+.hourly-item.now {
+  background: rgba(212,149,107,0.12);
+  border: 1px solid rgba(212,149,107,0.2);
+}
+
+.hourly-time {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+
+.hourly-item.now .hourly-time { color: var(--accent); }
+
+.hourly-icon { font-size: 1.45rem; line-height: 1; }
+
+.hourly-temp {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.hourly-precip {
+  font-size: 0.65rem;
+  color: var(--accent-blue);
+  font-weight: 500;
+}
+
+/* =========================================
+   7-DAY FORECAST
+   ========================================= */
+.forecast-section {
+  grid-column: 1 / -1;
+}
+
+.forecast-card {
+  padding: 8px 20px;
+}
+
+.forecast-row {
+  display: flex;
+  align-items: center;
+  padding: 13px 0;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.forecast-row:last-child { border-bottom: none; }
+
+.forecast-day-name {
+  width: 52px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.forecast-day-name.today { color: var(--accent); }
+
+.forecast-row-icon {
+  font-size: 1.5rem;
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.forecast-row-desc {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.forecast-precip-badge {
+  font-size: 0.72rem;
+  color: var(--accent-blue);
+  font-weight: 500;
+  width: 42px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.forecast-temp-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.forecast-low-val {
+  font-size: 0.85rem;
+  color: var(--text-3);
+  width: 30px;
+  text-align: right;
+}
+
+.forecast-bar-track {
+  width: 100px;
+  height: 5px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.forecast-bar-fill {
+  position: absolute;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+}
+
+.forecast-high-val {
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: 30px;
+}
+
+/* =========================================
+   SUN CARDS
+   ========================================= */
+.sun-card-wrap {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sun-card {
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sun-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.sun-info { display: flex; flex-direction: column; gap: 2px; }
+
+.sun-label {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  font-weight: 600;
+}
+
+.sun-time {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* =========================================
+   ERROR TOAST
+   ========================================= */
+.error-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(180, 50, 50, 0.92);
+  backdrop-filter: blur(14px);
+  color: white;
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 500;
+  z-index: 200;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none;
+  box-shadow: 0 8px 30px rgba(180,50,50,0.25);
+}
+
+.error-toast.visible { transform: translateX(-50%) translateY(0); }
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+/* Tablet */
+@media (max-width: 860px) {
+  .details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .forecast-bar-track { width: 70px; }
+}
+
+/* Mobile landscape / large phone */
+@media (max-width: 680px) {
+  .container { padding: 16px 14px 36px; }
+
+  .header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .brand { width: 100%; }
+
+  .search-wrapper {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dashboard.visible {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hero-card {
+    flex-direction: column;
+    padding: 24px 22px 22px;
+    gap: 20px;
+  }
+
+  .hero-right {
+    text-align: left;
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 14px;
+    align-items: baseline;
+  }
+
+  .clock-time { font-size: 1.6rem; }
+
+  .hero-temp { font-size: 4rem; letter-spacing: -3px; }
+  .hero-icon { font-size: 3.2rem; }
+  .hero-city { font-size: 1.35rem; }
+
+  .details-grid {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .detail-value { font-size: 1.2rem; }
+
+  .hourly-section,
+  .forecast-section,
+  .sun-card-wrap {
+    grid-column: 1 / -1;
+  }
+
+  .sun-card-wrap { grid-template-columns: 1fr 1fr; }
+
+  .forecast-bar-track { width: 56px; }
+
+  .forecast-row-desc { display: none; }
+}
+
+/* Small phone */
+@media (max-width: 420px) {
+  .header { gap: 8px; }
+
+  .btn-location span { display: none; }
+  .btn-location { padding: 10px 12px; }
+
+  .hero-temp { font-size: 3.4rem; letter-spacing: -2px; }
+  .hero-icon { font-size: 2.6rem; }
+  .hero-temp-unit { font-size: 1.4rem; }
+
+  .details-grid { grid-template-columns: 1fr 1fr; }
+
+  .sun-card-wrap { grid-template-columns: 1fr; }
+
+  .forecast-bar-track { width: 44px; }
+
+  .forecast-card { padding: 8px 12px; }
+
+  .hourly-item { width: 58px; }
+}
+
+/* Very tall / foldable */
+@media (max-height: 600px) and (orientation: landscape) {
+  .state-message { padding: 40px 20px; }
+}
