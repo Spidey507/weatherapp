@@ -11,21 +11,22 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg-from: #0b1a33;
-      --bg-via: #122347;
-      --bg-to: #1a3a6b;
-      --glass: rgba(255, 255, 255, 0.06);
-      --glass-hover: rgba(255, 255, 255, 0.10);
-      --glass-border: rgba(255, 255, 255, 0.10);
-      --glass-border-light: rgba(255, 255, 255, 0.15);
-      --shadow: rgba(0, 0, 0, 0.25);
-      --text: #ffffff;
-      --text-2: rgba(255, 255, 255, 0.72);
-      --text-3: rgba(255, 255, 255, 0.45);
-      --accent: #5b9cf6;
-      --accent-warm: #f6a35b;
-      --radius: 18px;
-      --radius-sm: 14px;
+      --bg-from: #191919;
+      --bg-via: #1e1e1e;
+      --bg-to: #252522;
+      --glass: rgba(255, 255, 255, 0.035);
+      --glass-hover: rgba(255, 255, 255, 0.06);
+      --glass-border: rgba(255, 255, 255, 0.07);
+      --glass-border-light: rgba(255, 255, 255, 0.12);
+      --shadow: rgba(0, 0, 0, 0.2);
+      --text: rgba(255, 255, 255, 0.9);
+      --text-2: rgba(255, 255, 255, 0.55);
+      --text-3: rgba(255, 255, 255, 0.35);
+      --accent: #D4956B;
+      --accent-warm: #C17A52;
+      --accent-blue: #7EADD4;
+      --radius: 12px;
+      --radius-sm: 8px;
     }
 
     html { font-size: 16px; }
@@ -42,9 +43,9 @@
     }
 
     body.night {
-      --bg-from: #050d1a;
-      --bg-via: #0a1628;
-      --bg-to: #0f1f3d;
+      --bg-from: #111111;
+      --bg-via: #151515;
+      --bg-to: #1a1a18;
     }
 
     /* --- Ambient background glow --- */
@@ -55,7 +56,7 @@
       right: -10%;
       width: 600px;
       height: 600px;
-      background: radial-gradient(circle, rgba(91,156,246,0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(212,149,107,0.07) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -67,7 +68,7 @@
       left: -10%;
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle, rgba(246,163,91,0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(193,122,82,0.05) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -81,11 +82,12 @@
     }
 
     /* =========================================
-       HEADER
+       HEADER — Notion page-title style
        ========================================= */
     .header {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 14px;
       margin-bottom: 28px;
     }
@@ -94,42 +96,40 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-right: auto;
       flex-shrink: 0;
     }
 
     .brand-logo {
-      width: 34px;
-      height: 34px;
-      background: linear-gradient(135deg, var(--accent), #83b9ff);
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.5rem;
+      line-height: 1;
     }
-
-    .brand-logo svg { width: 20px; height: 20px; }
 
     .brand-name {
       font-size: 1.2rem;
       font-weight: 700;
       letter-spacing: -0.3px;
+      color: var(--text);
     }
 
     .brand-name span { color: var(--accent); }
 
     .search-wrapper {
       position: relative;
-      width: 340px;
+      width: 380px;
       flex-shrink: 1;
       min-width: 0;
     }
 
     .search-input {
       width: 100%;
-      padding: 10px 14px 10px 38px;
+      padding: 10px 36px 10px 38px;
       border: 1px solid var(--glass-border);
-      border-radius: 12px;
+      border-radius: var(--radius-sm);
       background: var(--glass);
       color: var(--text);
       font-family: inherit;
@@ -143,8 +143,8 @@
 
     .search-input:focus {
       border-color: var(--accent);
-      background: rgba(255,255,255,0.09);
-      box-shadow: 0 0 0 3px rgba(91,156,246,0.18);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 0 3px rgba(212,149,107,0.15);
     }
 
     .search-icon {
@@ -155,14 +155,35 @@
       width: 15px;
       height: 15px;
       color: var(--text-3);
+      transition: opacity 0.15s;
     }
+
+    .search-wrapper.loading .search-icon { opacity: 0; }
+
+    .search-spinner {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      border: 2px solid rgba(255,255,255,0.08);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+
+    .search-wrapper.loading .search-spinner { opacity: 1; }
 
     .search-results {
       position: absolute;
       top: calc(100% + 8px);
       left: 0;
       right: 0;
-      background: rgba(12, 22, 45, 0.96);
+      background: rgba(30, 30, 30, 0.96);
       backdrop-filter: blur(24px);
       border: 1px solid var(--glass-border-light);
       border-radius: var(--radius-sm);
@@ -178,11 +199,11 @@
       padding: 11px 16px;
       cursor: pointer;
       transition: background 0.12s;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
     }
 
     .search-result-item:last-child { border-bottom: none; }
-    .search-result-item:hover { background: rgba(255,255,255,0.08); }
+    .search-result-item:hover { background: rgba(255,255,255,0.05); }
 
     .search-result-name {
       font-weight: 500;
@@ -201,7 +222,7 @@
       gap: 7px;
       padding: 10px 16px;
       border: 1px solid var(--glass-border);
-      border-radius: 12px;
+      border-radius: var(--radius-sm);
       background: var(--glass);
       color: var(--text);
       font-family: inherit;
@@ -216,10 +237,13 @@
 
     .btn-location:hover {
       background: var(--glass-hover);
-      border-color: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.15);
     }
 
-    .btn-location svg { width: 15px; height: 15px; }
+    .btn-location .btn-emoji {
+      font-size: 1rem;
+      line-height: 1;
+    }
 
     /* =========================================
        STATE SCREENS
@@ -252,7 +276,7 @@
     .spinner {
       width: 36px;
       height: 36px;
-      border: 3px solid rgba(255,255,255,0.1);
+      border: 3px solid rgba(255,255,255,0.07);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.75s linear infinite;
@@ -300,6 +324,8 @@
 
     /* --- Hero card (current weather) --- */
     .hero-card {
+      --hue: 212,149,107;
+      --hue-alt: 190,130,90;
       grid-column: 1 / -1;
       padding: 32px 36px 28px;
       display: flex;
@@ -308,20 +334,91 @@
       gap: 24px;
       position: relative;
       overflow: hidden;
+      border-color: rgba(var(--hue), 0.12);
     }
 
-    .hero-card::after {
-      content: '';
+    /* --- Lava lamp blobs --- */
+    .hero-lava {
       position: absolute;
-      top: -40px;
-      right: -40px;
-      width: 220px;
-      height: 220px;
-      background: radial-gradient(circle, rgba(91,156,246,0.1) 0%, transparent 70%);
+      inset: 0;
+      z-index: 0;
       pointer-events: none;
     }
 
-    .hero-left { flex: 1; min-width: 0; }
+    .lava-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(55px);
+      will-change: transform;
+    }
+
+    .blob-1 {
+      width: 260px;
+      height: 260px;
+      background: rgba(var(--hue), 0.18);
+      top: -70px;
+      left: -50px;
+      animation: lava1 14s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 200px;
+      height: 200px;
+      background: rgba(var(--hue-alt), 0.15);
+      bottom: -60px;
+      right: -40px;
+      animation: lava2 18s ease-in-out infinite;
+    }
+
+    .blob-3 {
+      width: 180px;
+      height: 180px;
+      background: rgba(var(--hue), 0.10);
+      top: 10%;
+      left: 45%;
+      animation: lava3 22s ease-in-out infinite;
+    }
+
+    @keyframes lava1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      20%  { transform: translate(110px, 40px) scale(1.15); }
+      40%  { transform: translate(70px, 100px) scale(0.9); }
+      60%  { transform: translate(160px, 60px) scale(1.05); }
+      80%  { transform: translate(-20px, 70px) scale(1.12); }
+    }
+
+    @keyframes lava2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25%  { transform: translate(-90px, -50px) scale(1.2); }
+      50%  { transform: translate(-50px, -100px) scale(0.85); }
+      75%  { transform: translate(-120px, -30px) scale(1.08); }
+    }
+
+    @keyframes lava3 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      15%  { transform: translate(-70px, 35px) scale(1.1); }
+      35%  { transform: translate(50px, -25px) scale(0.8); }
+      55%  { transform: translate(90px, 50px) scale(1.2); }
+      75%  { transform: translate(-30px, -45px) scale(0.92); }
+    }
+
+    /* Glass overlay sitting between blobs and content */
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: rgba(25, 25, 25, 0.52);
+      backdrop-filter: blur(2px);
+      pointer-events: none;
+      transition: background 1s ease;
+    }
+
+    body.night .hero-card::before {
+      background: rgba(17, 17, 17, 0.58);
+    }
+
+    .hero-left { flex: 1; min-width: 0; position: relative; z-index: 2; }
 
     .hero-location {
       display: flex;
@@ -384,6 +481,8 @@
       flex-direction: column;
       align-items: flex-end;
       gap: 6px;
+      position: relative;
+      z-index: 2;
     }
 
     .clock-time {
@@ -411,7 +510,7 @@
     .details-grid {
       grid-column: 1 / -1;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
     }
 
@@ -425,13 +524,12 @@
     .detail-header {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
     }
 
-    .detail-icon {
-      width: 16px;
-      height: 16px;
-      color: var(--text-3);
+    .detail-emoji {
+      font-size: 1rem;
+      line-height: 1;
       flex-shrink: 0;
     }
 
@@ -487,7 +585,7 @@
     .hourly-scroll::-webkit-scrollbar { height: 4px; }
     .hourly-scroll::-webkit-scrollbar-track { background: transparent; }
     .hourly-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
       border-radius: 4px;
     }
 
@@ -499,16 +597,16 @@
       align-items: center;
       gap: 8px;
       padding: 12px 6px;
-      border-radius: 14px;
+      border-radius: var(--radius-sm);
       scroll-snap-align: start;
       transition: background 0.15s;
     }
 
-    .hourly-item:hover { background: rgba(255,255,255,0.06); }
+    .hourly-item:hover { background: rgba(255,255,255,0.04); }
 
     .hourly-item.now {
-      background: rgba(91,156,246,0.15);
-      border: 1px solid rgba(91,156,246,0.25);
+      background: rgba(212,149,107,0.12);
+      border: 1px solid rgba(212,149,107,0.2);
     }
 
     .hourly-time {
@@ -529,7 +627,7 @@
 
     .hourly-precip {
       font-size: 0.65rem;
-      color: var(--accent);
+      color: var(--accent-blue);
       font-weight: 500;
     }
 
@@ -547,7 +645,7 @@
       align-items: center;
       padding: 13px 0;
       gap: 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
     }
 
     .forecast-row:last-child { border-bottom: none; }
@@ -580,7 +678,7 @@
 
     .forecast-precip-badge {
       font-size: 0.72rem;
-      color: var(--accent);
+      color: var(--accent-blue);
       font-weight: 500;
       width: 42px;
       text-align: right;
@@ -604,7 +702,7 @@
     .forecast-bar-track {
       width: 100px;
       height: 5px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.06);
       border-radius: 3px;
       position: relative;
       overflow: hidden;
@@ -666,17 +764,17 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: rgba(200, 40, 40, 0.92);
+      background: rgba(180, 50, 50, 0.92);
       backdrop-filter: blur(14px);
       color: white;
       padding: 12px 28px;
-      border-radius: 14px;
+      border-radius: var(--radius-sm);
       font-size: 0.88rem;
       font-weight: 500;
       z-index: 200;
       transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
       pointer-events: none;
-      box-shadow: 0 8px 30px rgba(200,40,40,0.3);
+      box-shadow: 0 8px 30px rgba(180,50,50,0.25);
     }
 
     .error-toast.visible { transform: translateX(-50%) translateY(0); }
@@ -792,33 +890,28 @@
   <!-- ===== HEADER ===== -->
   <div class="header">
     <div class="brand">
-      <div class="brand-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round">
-          <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/>
-        </svg>
-      </div>
+      <div class="brand-logo">&#9925;</div>
       <div class="brand-name">Weather<span>Cast</span></div>
     </div>
 
-    <div class="search-wrapper">
+    <div class="search-wrapper" id="searchWrapper">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
         <circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4-4"/>
       </svg>
+      <div class="search-spinner"></div>
       <input type="text" class="search-input" id="searchInput" placeholder="Search city..." autocomplete="off">
       <div class="search-results" id="searchResults"></div>
     </div>
 
     <button class="btn-location" id="btnLocation">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="4"/>
-      </svg>
+      <span class="btn-emoji">&#128205;</span>
       <span>My Location</span>
     </button>
   </div>
 
   <!-- ===== WELCOME ===== -->
   <div class="state-message" id="welcomeState">
-    <div class="state-icon">&#9729;&#65039;</div>
+    <div class="state-icon">&#127758;</div>
     <h2>Check the forecast</h2>
     <p>Search for any city worldwide or allow location access to get your local weather instantly.</p>
   </div>
@@ -835,6 +928,11 @@
 
     <!-- Hero -->
     <div class="hero-card card" id="heroCard">
+      <div class="hero-lava">
+        <span class="lava-blob blob-1"></span>
+        <span class="lava-blob blob-2"></span>
+        <span class="lava-blob blob-3"></span>
+      </div>
       <div class="hero-left">
         <div class="hero-location">
           <div class="hero-city" id="cityName">--</div>
@@ -857,21 +955,21 @@
     <div class="details-grid" id="detailsGrid">
       <div class="detail-card card">
         <div class="detail-header">
-          <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 1 1 4 0"/></svg>
+          <span class="detail-emoji">&#127777;&#65039;</span>
           <span class="detail-label">Feels like</span>
         </div>
         <div class="detail-value" id="feelsLike">--</div>
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <span class="detail-emoji">&#128167;</span>
           <span class="detail-label">Humidity</span>
         </div>
         <div class="detail-value" id="humidity">--</div>
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+          <span class="detail-emoji">&#127788;&#65039;</span>
           <span class="detail-label">Wind</span>
         </div>
         <div class="detail-value" id="windSpeed">--</div>
@@ -879,7 +977,7 @@
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1m0 16v1m-9-9h1m16 0h1m-2.64-6.36-.7.7M6.34 17.66l-.7.7m0-12.02.7.7m11.02 11.02.7.7"/><circle cx="12" cy="12" r="4"/></svg>
+          <span class="detail-emoji">&#9728;&#65039;</span>
           <span class="detail-label">UV Index</span>
         </div>
         <div class="detail-value" id="uvIndex">--</div>
@@ -887,14 +985,14 @@
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V4M4 12l8-8 8 8"/></svg>
+          <span class="detail-emoji">&#9874;&#65039;</span>
           <span class="detail-label">Pressure</span>
         </div>
         <div class="detail-value" id="pressure">--</div>
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="9" x2="12" y2="2"/><path d="M4.22 10.22l1.42 1.42m12.72 0 1.42-1.42"/></svg>
+          <span class="detail-emoji">&#128168;</span>
           <span class="detail-label">Max Wind</span>
         </div>
         <div class="detail-value" id="maxWind">--</div>
@@ -904,14 +1002,14 @@
     <!-- Sunrise / Sunset -->
     <div class="sun-card-wrap">
       <div class="sun-card card">
-        <div class="sun-icon">&#9728;&#65039;</div>
+        <div class="sun-icon">&#127749;</div>
         <div class="sun-info">
           <div class="sun-label">Sunrise</div>
           <div class="sun-time" id="sunrise">--:--</div>
         </div>
       </div>
       <div class="sun-card card">
-        <div class="sun-icon">&#127749;</div>
+        <div class="sun-icon">&#127751;</div>
         <div class="sun-info">
           <div class="sun-label">Sunset</div>
           <div class="sun-time" id="sunset">--:--</div>
@@ -941,10 +1039,11 @@
 
 <script>
 (function () {
-  /* ── DOM refs ── */
+  /* -- DOM refs -- */
   const $ = (id) => document.getElementById(id);
   const searchInput    = $('searchInput');
   const searchResults  = $('searchResults');
+  const searchWrapper  = $('searchWrapper');
   const btnLocation    = $('btnLocation');
   const welcomeState   = $('welcomeState');
   const loadingState   = $('loadingState');
@@ -955,7 +1054,7 @@
   let currentTimezone = 'UTC';
   let debounceTimer = null;
 
-  /* ── WMO weather codes ── */
+  /* -- WMO weather codes -- */
   const WMO = {
     0:  { d: 'Clear sky',           i: (n) => n ? '\u2600\uFE0F' : '\uD83C\uDF11' },
     1:  { d: 'Mainly clear',        i: (n) => n ? '\uD83C\uDF24\uFE0F' : '\uD83C\uDF19' },
@@ -992,13 +1091,13 @@
     return { desc: e.d, icon: e.i(isDay) };
   }
 
-  /* ── Wind direction label ── */
+  /* -- Wind direction label -- */
   function windLabel(deg) {
     const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
     return dirs[Math.round(deg / 22.5) % 16];
   }
 
-  /* ── UV label ── */
+  /* -- UV label -- */
   function uvLabel(val) {
     if (val <= 2) return 'Low';
     if (val <= 5) return 'Moderate';
@@ -1007,7 +1106,33 @@
     return 'Extreme';
   }
 
-  /* ── State management ── */
+  /* -- Weather mood → hero card hues (r,g,b pairs) -- */
+  function weatherMood(code, isDay) {
+    // Clear / sunny
+    if (code <= 1 && isDay)  return { hue:'210,170,100', alt:'195,135,75' };  // golden amber + deeper amber
+    if (code <= 1 && !isDay) return { hue:'150,160,195', alt:'120,130,175' }; // moonlight + deeper indigo
+    // Partly cloudy
+    if (code === 2)          return { hue:'180,170,145', alt:'155,150,125' }; // warm neutral + earthy
+    // Overcast
+    if (code === 3)          return { hue:'145,145,155', alt:'125,128,140' }; // muted gray + cool gray
+    // Fog
+    if (code === 45 || code === 48) return { hue:'160,155,170', alt:'140,135,155' }; // lavender + deeper lilac
+    // Drizzle / light rain
+    if (code >= 51 && code <= 57)   return { hue:'130,160,185', alt:'110,140,170' }; // steel blue + slate
+    // Rain
+    if (code >= 61 && code <= 67)   return { hue:'115,150,190', alt:'95,125,170' };  // rain blue + deep navy
+    // Snow
+    if (code >= 71 && code <= 77)   return { hue:'170,185,205', alt:'145,165,190' }; // ice + cool steel
+    // Showers
+    if (code >= 80 && code <= 82)   return { hue:'120,155,185', alt:'100,135,168' }; // shower blue + deep
+    // Snow showers
+    if (code >= 85 && code <= 86)   return { hue:'165,180,200', alt:'140,160,185' }; // icy + steel
+    // Thunderstorm
+    if (code >= 95)                 return { hue:'155,130,175', alt:'130,105,155' }; // muted purple + deep violet
+    return { hue:'212,149,107', alt:'190,130,90' }; // default accent
+  }
+
+  /* -- State management -- */
   function showState(s) {
     welcomeState.style.display = s === 'welcome' ? '' : 'none';
     loadingState.style.display = s === 'loading' ? '' : 'none';
@@ -1020,7 +1145,7 @@
     setTimeout(() => errorToast.classList.remove('visible'), 4500);
   }
 
-  /* ── Clock ── */
+  /* -- Clock -- */
   function startClock(tz) {
     currentTimezone = tz;
     if (clockInterval) clearInterval(clockInterval);
@@ -1040,11 +1165,16 @@
     } catch { $('clockTime').textContent = '--:--'; }
   }
 
-  /* ── Search ── */
+  /* -- Search -- */
   searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
     const q = searchInput.value.trim();
-    if (q.length < 2) { searchResults.classList.remove('visible'); return; }
+    if (q.length < 2) {
+      searchResults.classList.remove('visible');
+      searchWrapper.classList.remove('loading');
+      return;
+    }
+    searchWrapper.classList.add('loading');
     debounceTimer = setTimeout(() => fetchCities(q), 280);
   });
   searchInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') searchResults.classList.remove('visible'); });
@@ -1058,6 +1188,7 @@
       const d = await r.json();
       renderSearch(d.results || []);
     } catch { searchResults.classList.remove('visible'); }
+    finally { searchWrapper.classList.remove('loading'); }
   }
 
   function renderSearch(results) {
@@ -1078,7 +1209,7 @@
     searchResults.classList.add('visible');
   }
 
-  /* ── Geolocation ── */
+  /* -- Geolocation -- */
   btnLocation.addEventListener('click', () => {
     if (!navigator.geolocation) { showError('Geolocation not supported.'); return; }
     showState('loading');
@@ -1096,7 +1227,7 @@
     );
   });
 
-  /* ── Fetch & render ── */
+  /* -- Fetch & render -- */
   async function loadWeather(lat, lon, city, country, tz) {
     showState('loading');
     try {
@@ -1124,6 +1255,12 @@
     $('currentIcon').textContent = info.icon;
     $('currentTemp').innerHTML = `${Math.round(cur.temperature_2m)}<span class="hero-temp-unit">&deg;C</span>`;
     $('currentCondition').textContent = info.desc;
+
+    /* Hero lava hue based on conditions */
+    const heroCard = $('heroCard');
+    const mood = weatherMood(cur.weather_code, isDay);
+    heroCard.style.setProperty('--hue', mood.hue);
+    heroCard.style.setProperty('--hue-alt', mood.alt);
 
     /* Details */
     $('feelsLike').textContent = `${Math.round(cur.apparent_temperature)}\u00B0C`;
@@ -1215,7 +1352,7 @@
     showState('weather');
   }
 
-  /* ── Util ── */
+  /* -- Util -- */
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 })();
 </script>
