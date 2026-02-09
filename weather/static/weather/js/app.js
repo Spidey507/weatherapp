@@ -24,6 +24,26 @@ let clockInterval = null;
 let currentTimezone = 'UTC';
 let debounceTimer = null;
 
+/* ── User preferences ── */
+const prefsEl = $('userPrefs');
+const useMetric = prefsEl ? prefsEl.dataset.metric !== 'false' : true;
+
+function tempUnit()  { return useMetric ? '°C' : '°F'; }
+function speedUnit() { return useMetric ? 'km/h' : 'mph'; }
+function toUserTemp(c) { return useMetric ? Math.round(c) : Math.round(c * 9 / 5 + 32); }
+function toUserSpeed(kmh) { return useMetric ? Math.round(kmh) : Math.round(kmh * 0.621371); }
+
+/* ── Time-based greeting ── */
+function updateGreeting() {
+  const el = $('greetingHello');
+  if (!el) return;
+  const h = new Date().getHours();
+  if (h < 12)      el.textContent = 'Good morning,';
+  else if (h < 18) el.textContent = 'Good afternoon,';
+  else             el.textContent = 'Good evening,';
+}
+updateGreeting();
+
 /* ── WMO weather codes → Lucide icon names ── */
 const WMO = {
   0:  { d: 'Clear sky',           i: (n) => n ? 'sun'            : 'moon' },
@@ -277,6 +297,15 @@ function animateDashboardEntrance() {
     { duration: 0.7, easing: SPRING_BOUNCE }
   );
 
+  /* 1b ── Greeting row */
+  const greetingRow = $('greetingRow');
+  if (greetingRow) {
+    animate(greetingRow,
+      { opacity: [0, 1], transform: ['translateY(-10px)', 'translateY(0)'] },
+      { duration: 0.4, easing: EASE_OUT_QUINT }
+    );
+  }
+
   /* 2 ── Score cards (if present) */
   const scoreCards = document.querySelectorAll('.score-card');
   if (scoreCards.length) {
@@ -344,13 +373,17 @@ function animateDashboardEntrance() {
    FETCH & RENDER
    ══════════════════════════════════════════ */
 
+/* Track current location for share / save */
+let currentLocation = { lat: null, lon: null, city: '', country: '' };
+
 async function loadWeather(lat, lon, city, country, tz) {
   showState('loading');
+  currentLocation = { lat, lon, city, country };
   try {
     /* Fetch weather + activity scores in parallel */
     const [weatherResp, scoresResp] = await Promise.all([
       fetch(`/weather/api/weather/?lat=${lat}&lon=${lon}`),
-      fetch(`/weather/api/scores/?lat=${lat}&lon=${lon}`).catch(() => null),
+      fetch(`/weather/api/scores/?lat=${lat}&lon=${lon}&weekly=1`).catch(() => null),
     ]);
     if (!weatherResp.ok) throw 0;
     const weatherData = await weatherResp.json();
@@ -363,6 +396,9 @@ async function loadWeather(lat, lon, city, country, tz) {
 
     render(weatherData, city, country, tz);
     renderScores(scoresData);
+    renderWeeklyOutlook(scoresData);
+    renderSmartTip(weatherData, scoresData);
+    updateSavedBar();
   } catch {
     showError('Failed to load weather data.');
     showState('welcome');
@@ -376,9 +412,56 @@ function scoreColor(score) {
   return 'var(--text-3)';
 }
 
+/** Populate the primary-activity badge in the greeting + best-time widget */
+function renderPrimaryHighlight(data) {
+  const badge = $('primaryScoreBadge');
+  const card = $('bestTimeCard');
+  const primaryEl = $('greetingPrimary');
+  if (!primaryEl || !data || !data.scores) return;
+
+  const slug = primaryEl.dataset.slug;
+  const match = data.scores.find(s => s.slug === slug);
+  if (!match) return;
+
+  /* Update badge in greeting bar */
+  if (badge) badge.textContent = Math.round(match.score);
+
+  /* Update best-time widget */
+  if (card) {
+    const timeStr = match.best_window
+      ? `${match.best_window.start} – ${match.best_window.end}`
+      : 'No ideal window today';
+    $('bestTimeValue').textContent = timeStr;
+
+    const pct = Math.min(100, Math.max(0, match.score));
+    $('bestTimeRingText').textContent = Math.round(match.score);
+
+    /* Animate ring */
+    const ringFill = $('bestTimeRingFill');
+    if (ringFill) {
+      ringFill.setAttribute('stroke-dasharray', `${pct}, 100`);
+    }
+
+    card.style.display = '';
+
+    /* Animate entrance */
+    if (motion) {
+      const { animate } = motion;
+      animate(card,
+        { opacity: [0, 1], transform: ['translateY(16px)', 'translateY(0)'] },
+        { duration: 0.5, delay: 0.15, easing: EASE_OUT_QUINT }
+      );
+    }
+  }
+}
+
 function renderScores(data) {
   const section = $('scoresSection');
   const grid = $('scoresGrid');
+
+  /* Always try to populate primary highlight, even if grid is empty */
+  renderPrimaryHighlight(data);
+
   if (!data || !data.scores || !data.scores.length) {
     section.style.display = 'none';
     return;
@@ -430,6 +513,256 @@ function renderScores(data) {
   }
 }
 
+/* ══════════════════════════════════════════
+   SMART TIP
+   ══════════════════════════════════════════ */
+function renderSmartTip(weather, scores) {
+  const tipEl = $('smartTip');
+  const textEl = $('smartTipText');
+  if (!tipEl || !textEl) return;
+
+  const cur = weather.current;
+  const hourly = weather.hourly || {};
+  const precProbs = hourly.precipitation_probability || [];
+
+  // Find primary activity score
+  let primaryScore = null;
+  let primaryName = '';
+  const primaryEl = $('greetingPrimary');
+  if (primaryEl && scores && scores.scores) {
+    const slug = primaryEl.dataset.slug;
+    const match = scores.scores.find(s => s.slug === slug);
+    if (match) { primaryScore = match; primaryName = match.name; }
+  }
+
+  // Find top activity
+  const top = scores && scores.scores && scores.scores[0];
+
+  // Build tip
+  let tip = '';
+
+  // Rain incoming?
+  const rainHourIdx = precProbs.findIndex((p, i) => i > 0 && p > 60);
+  const times = hourly.time || [];
+
+  if (rainHourIdx > 0 && rainHourIdx <= 4) {
+    const rainTime = times[rainHourIdx] ? new Date(times[rainHourIdx]).getHours() + ':00' : '';
+    tip = `Rain likely around ${rainTime} — head out now if you can.`;
+  } else if (primaryScore && primaryScore.score >= 80 && primaryScore.best_window) {
+    tip = `Great conditions for ${primaryName} — best window is ${primaryScore.best_window.start}–${primaryScore.best_window.end}.`;
+  } else if (primaryScore && primaryScore.score >= 60 && primaryScore.best_window) {
+    tip = `Decent ${primaryName} conditions. Aim for ${primaryScore.best_window.start}–${primaryScore.best_window.end}.`;
+  } else if (primaryScore && primaryScore.score < 40) {
+    if (top && top.score >= 60) {
+      tip = `Not ideal for ${primaryName} today — but ${top.name} looks good (score: ${Math.round(top.score)}).`;
+    } else {
+      tip = `Tough conditions today. Consider an indoor alternative.`;
+    }
+  } else if (top && top.score >= 80) {
+    tip = `Perfect day for ${top.name} — score ${Math.round(top.score)}/100.`;
+  } else if (cur.temperature_2m > 35) {
+    tip = `It's hot out there — stay hydrated and avoid peak sun hours.`;
+  } else if (cur.wind_speed_10m > 40) {
+    tip = `Strong winds today — be careful with exposed activities.`;
+  } else {
+    tip = `Conditions are moderate. Check individual scores for details.`;
+  }
+
+  textEl.textContent = tip;
+  tipEl.style.display = '';
+  renderIcons();
+
+  if (motion) {
+    motion.animate(tipEl,
+      { opacity: [0, 1], transform: ['translateY(8px)', 'translateY(0)'] },
+      { duration: 0.4, delay: 0.2, easing: EASE_OUT_QUINT }
+    );
+  }
+}
+
+/* ══════════════════════════════════════════
+   WEEKLY ACTIVITY OUTLOOK
+   ══════════════════════════════════════════ */
+function renderWeeklyOutlook(scores) {
+  const container = $('weeklyOutlook');
+  const dotsEl = $('weeklyDots');
+  if (!container || !dotsEl || !scores || !scores.weekly) return;
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  dotsEl.innerHTML = scores.weekly.map((d, i) => {
+    const dt = new Date(d.date + 'T12:00:00');
+    const name = i === 0 ? 'Today' : dayNames[dt.getDay()];
+    const score = Math.round(d.score);
+    let dotClass = 'dot-low';
+    if (score >= 70) dotClass = 'dot-great';
+    else if (score >= 50) dotClass = 'dot-ok';
+
+    return `
+      <div class="weekly-day">
+        <div class="weekly-day-name">${name}</div>
+        <div class="weekly-dot ${dotClass}" title="${score}/100 — ${d.label}"></div>
+        <div class="weekly-day-score">${score}</div>
+      </div>`;
+  }).join('');
+
+  container.style.display = '';
+
+  if (motion) {
+    const { animate, stagger } = motion;
+    animate(dotsEl.querySelectorAll('.weekly-day'),
+      { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0)'] },
+      { duration: 0.35, delay: stagger(0.05, { start: 0.1 }), easing: EASE_OUT_QUINT }
+    );
+  }
+}
+
+/* ══════════════════════════════════════════
+   SAVED LOCATIONS BAR
+   ══════════════════════════════════════════ */
+let savedLocations = [];
+const savedDataEl = document.getElementById('savedLocationsData');
+if (savedDataEl) {
+  try { savedLocations = JSON.parse(savedDataEl.textContent); } catch {}
+}
+const isAuthed = prefsEl && prefsEl.dataset.authed === 'true';
+
+function getCsrf() {
+  const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+  return cookie ? cookie.split('=')[1] : '';
+}
+
+function updateSavedBar() {
+  const bar = $('savedBar');
+  if (!bar || !isAuthed) return;
+
+  const isCurrentSaved = savedLocations.some(
+    s => s.name === `${currentLocation.city}, ${currentLocation.country}`
+       || s.name === currentLocation.city
+  );
+
+  let html = '';
+
+  // Save button (only if weather loaded and not already saved)
+  if (currentLocation.city && !isCurrentSaved) {
+    html += `<button class="saved-chip saved-add" id="btnSaveLocation">
+      <i data-lucide="bookmark-plus"></i>
+      <span>Save</span>
+    </button>`;
+  }
+
+  // Saved location chips
+  savedLocations.forEach(loc => {
+    const isActive = loc.name.startsWith(currentLocation.city);
+    html += `<button class="saved-chip${isActive ? ' active' : ''}"
+      data-lat="${loc.latitude}" data-lon="${loc.longitude}" data-name="${esc(loc.name)}">
+      <i data-lucide="map-pin"></i>
+      <span>${esc(loc.name.split(',')[0])}</span>
+      <span class="saved-remove" data-remove="${esc(loc.name)}">&times;</span>
+    </button>`;
+  });
+
+  bar.innerHTML = html;
+  if (!html) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  renderIcons();
+
+  // Save click
+  const saveBtn = document.getElementById('btnSaveLocation');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      const name = currentLocation.city + (currentLocation.country ? ', ' + currentLocation.country : '');
+      try {
+        const res = await fetch('/profile/api/save-location/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+          body: JSON.stringify({ name, latitude: currentLocation.lat, longitude: currentLocation.lon }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          savedLocations.push({ name: data.name, latitude: data.latitude, longitude: data.longitude });
+          updateSavedBar();
+        }
+      } catch {}
+    });
+  }
+
+  // Click to switch
+  bar.querySelectorAll('.saved-chip:not(.saved-add)').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      if (e.target.classList.contains('saved-remove')) return;
+      const lat = parseFloat(chip.dataset.lat);
+      const lon = parseFloat(chip.dataset.lon);
+      const parts = chip.dataset.name.split(',').map(s => s.trim());
+      loadWeather(lat, lon, parts[0], parts.slice(1).join(', '));
+    });
+  });
+
+  // Remove
+  bar.querySelectorAll('.saved-remove').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const name = btn.dataset.remove;
+      try {
+        await fetch('/profile/api/remove-location/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+          body: JSON.stringify({ name }),
+        });
+        savedLocations = savedLocations.filter(s => s.name !== name);
+        updateSavedBar();
+      } catch {}
+    });
+  });
+}
+
+// Initial render of saved bar
+updateSavedBar();
+
+/* ══════════════════════════════════════════
+   SHARE CARD
+   ══════════════════════════════════════════ */
+const btnShare = $('btnShare');
+if (btnShare) {
+  btnShare.addEventListener('click', () => {
+    const city = $('cityName').textContent;
+    const temp = $('currentTemp').textContent;
+    const condition = $('currentCondition').textContent;
+
+    let text = `${city} — ${temp}, ${condition}`;
+
+    // Add primary score if available
+    const badge = $('primaryScoreBadge');
+    const primaryEl = $('greetingPrimary');
+    if (badge && primaryEl && badge.textContent !== '--') {
+      const actName = primaryEl.querySelector('.greeting-primary-name');
+      text += `\n${actName ? actName.textContent : 'Activity'} score: ${badge.textContent}/100`;
+    }
+
+    // Add best time if available
+    const bestTime = $('bestTimeValue');
+    if (bestTime && bestTime.textContent !== '--') {
+      text += `\nBest time: ${bestTime.textContent}`;
+    }
+
+    text += '\n\nvia Rutea';
+
+    if (navigator.share) {
+      navigator.share({ text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text).then(() => {
+        btnShare.classList.add('shared');
+        btnShare.innerHTML = '<i data-lucide="check"></i>';
+        renderIcons();
+        setTimeout(() => {
+          btnShare.classList.remove('shared');
+          btnShare.innerHTML = '<i data-lucide="share-2"></i>';
+          renderIcons();
+        }, 2000);
+      }).catch(() => {});
+    }
+  });
+}
+
 function render(data, city, country, timezone) {
   const tz = timezone || data.timezone || 'UTC';
   const cur = data.current;
@@ -445,7 +778,7 @@ function render(data, city, country, timezone) {
   const info = wmo(cur.weather_code, isDay);
   $('currentIcon').innerHTML = weatherIcon(info.icon, 'hero-condition-icon');
   $('currentTemp').innerHTML =
-    `${Math.round(cur.temperature_2m)}<span class="hero-temp-unit">&deg;C</span>`;
+    `${toUserTemp(cur.temperature_2m)}<span class="hero-temp-unit">${tempUnit()}</span>`;
   $('currentCondition').textContent = info.desc;
 
   /* Hero lava hue based on conditions */
@@ -455,9 +788,9 @@ function render(data, city, country, timezone) {
   heroCard.style.setProperty('--hue-alt', mood.alt);
 
   /* Details */
-  $('feelsLike').textContent = `${Math.round(cur.apparent_temperature)}\u00B0C`;
+  $('feelsLike').textContent = `${toUserTemp(cur.apparent_temperature)}${tempUnit()}`;
   $('humidity').textContent = `${cur.relative_humidity_2m}%`;
-  $('windSpeed').textContent = `${Math.round(cur.wind_speed_10m)} km/h`;
+  $('windSpeed').textContent = `${toUserSpeed(cur.wind_speed_10m)} ${speedUnit()}`;
   $('windDir').textContent = windLabel(cur.wind_direction_10m);
   $('pressure').textContent = `${Math.round(cur.surface_pressure)} hPa`;
 
@@ -465,7 +798,7 @@ function render(data, city, country, timezone) {
   $('uvIndex').textContent = uv != null ? uv.toFixed(1) : '--';
   $('uvLabel').textContent = uv != null ? uvLabel(uv) : '';
   $('maxWind').textContent = daily.wind_speed_10m_max
-    ? `${Math.round(daily.wind_speed_10m_max[0])} km/h`
+    ? `${toUserSpeed(daily.wind_speed_10m_max[0])} ${speedUnit()}`
     : '--';
 
   /* Sunrise / Sunset */
@@ -498,7 +831,7 @@ function render(data, city, country, timezone) {
       item.innerHTML = `
         <div class="hourly-time">${i === 0 ? 'Now' : hh}</div>
         <div class="hourly-icon">${weatherIcon(hi.icon, 'condition-icon')}</div>
-        <div class="hourly-temp">${Math.round(hourly.temperature_2m[i])}\u00B0</div>
+        <div class="hourly-temp">${toUserTemp(hourly.temperature_2m[i])}\u00B0</div>
         ${prec > 0 ? `<div class="hourly-precip"><i data-lucide="droplets" class="precip-icon"></i>${prec}%</div>` : ''}`;
       scroll.appendChild(item);
     }
@@ -520,8 +853,8 @@ function render(data, city, country, timezone) {
     const dt = new Date(daily.time[i] + 'T12:00:00');
     const name = i === 0 ? 'Today' : dayN[dt.getDay()];
     const fi = wmo(daily.weather_code[i], true);
-    const lo = Math.round(daily.temperature_2m_min[i]);
-    const hi = Math.round(daily.temperature_2m_max[i]);
+    const lo = toUserTemp(daily.temperature_2m_min[i]);
+    const hi = toUserTemp(daily.temperature_2m_max[i]);
     const prec = daily.precipitation_probability_max[i];
 
     const left = ((daily.temperature_2m_min[i] - gMin) / range * 100).toFixed(1);
@@ -551,4 +884,17 @@ function render(data, city, country, timezone) {
 
   /* Trigger Motion entrance animations */
   animateDashboardEntrance();
+}
+
+/* ══════════════════════════════════════════
+   AUTO-LOAD HOME LOCATION
+   ══════════════════════════════════════════ */
+if (prefsEl && prefsEl.dataset.homeLat && prefsEl.dataset.homeLon) {
+  const lat = parseFloat(prefsEl.dataset.homeLat);
+  const lon = parseFloat(prefsEl.dataset.homeLon);
+  const name = prefsEl.dataset.homeName || '';
+  const parts = name.split(',').map(s => s.trim());
+  const city = parts[0] || 'Home';
+  const country = parts.slice(1).join(', ');
+  loadWeather(lat, lon, city, country);
 }

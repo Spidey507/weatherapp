@@ -2,14 +2,44 @@ import requests
 from django.shortcuts import render
 from django.http import JsonResponse
 
-from activities.models import ActivityType
+import json as json_mod
+
+from accounts.models import SavedLocation
+from activities.models import ActivityType, UserActivity
 from weather.scoring.engine import compute_score
 from weather.scoring.windows import find_best_windows
 
 
 def index(request):
     """Serve the main weather dashboard (Home tab)."""
-    return render(request, 'weather/weather.html', {'active_tab': 'home'})
+    ctx = {'active_tab': 'home'}
+    if request.user.is_authenticated:
+        ctx['user_first_name'] = (
+            request.user.first_name
+            or request.user.email.split('@')[0]
+        )
+        ctx['use_metric'] = request.user.use_metric
+        ctx['home_lat'] = request.user.home_latitude
+        ctx['home_lon'] = request.user.home_longitude
+        ctx['home_name'] = request.user.home_location_name
+        primary = (
+            UserActivity.objects.filter(user=request.user, is_primary=True)
+            .select_related('activity_type')
+            .first()
+        )
+        if primary:
+            ctx['primary_activity'] = {
+                'name': primary.activity_type.name,
+                'slug': primary.activity_type.slug,
+                'icon': primary.activity_type.icon_name,
+            }
+        # Saved locations for quick-switch bar
+        saved = list(
+            SavedLocation.objects.filter(user=request.user)
+            .values('name', 'latitude', 'longitude')[:5]
+        )
+        ctx['saved_locations_json'] = json_mod.dumps(saved)
+    return render(request, 'weather/weather.html', ctx)
 
 
 def geocode(request):
@@ -121,8 +151,10 @@ def _fetch_weather_for_scoring(lat, lon):
         f'wind_speed_10m,weather_code,is_day'
         f'&hourly=temperature_2m,relative_humidity_2m,'
         f'precipitation_probability,wind_speed_10m,visibility'
-        f'&daily=uv_index_max,sunrise,sunset'
-        f'&timezone=auto&forecast_hours=24'
+        f'&daily=uv_index_max,sunrise,sunset,'
+        f'temperature_2m_max,temperature_2m_min,'
+        f'wind_speed_10m_max,precipitation_probability_max'
+        f'&timezone=auto&forecast_days=7&forecast_hours=24'
     )
     aqi_url = (
         f'https://air-quality-api.open-meteo.com/v1/air-quality?'
@@ -214,7 +246,16 @@ def activity_scores(request):
     current_wx = _build_current_weather(weather, aqi_data)
     hourly_wx = _build_hourly_weather(weather, aqi_data)
 
+    # If user is logged in and has activity preferences, filter by those
     activities = ActivityType.objects.filter(is_active=True)
+    if request.user.is_authenticated:
+        user_act_ids = list(
+            UserActivity.objects.filter(user=request.user)
+            .values_list('activity_type_id', flat=True)
+        )
+        if user_act_ids:
+            activities = activities.filter(id__in=user_act_ids)
+
     results = []
 
     for act in activities:
@@ -239,4 +280,199 @@ def activity_scores(request):
     # Sort by score descending
     results.sort(key=lambda r: r['score'], reverse=True)
 
-    return JsonResponse({'scores': results})
+    response = {'scores': results}
+
+    # Weekly outlook for primary activity (if requested)
+    if request.GET.get('weekly') and request.user.is_authenticated:
+        primary_ua = (
+            UserActivity.objects.filter(user=request.user, is_primary=True)
+            .select_related('activity_type')
+            .first()
+        )
+        if primary_ua:
+            daily = weather.get('daily', {})
+            daily_times = daily.get('time', [])
+            weekly = []
+            for i, day_str in enumerate(daily_times):
+                day_wx = {
+                    'temp': (
+                        (daily.get('temperature_2m_max', [20])[i]
+                         + daily.get('temperature_2m_min', [20])[i]) / 2
+                        if i < len(daily.get('temperature_2m_max', []))
+                        else 20
+                    ),
+                    'wind_speed': (
+                        daily.get('wind_speed_10m_max', [0])[i] * 0.6
+                        if i < len(daily.get('wind_speed_10m_max', []))
+                        else 0
+                    ),
+                    'rain_prob': (
+                        daily.get('precipitation_probability_max', [0])[i]
+                        if i < len(daily.get('precipitation_probability_max', []))
+                        else 0
+                    ),
+                    'humidity': 50,
+                    'uv_index': (
+                        daily.get('uv_index_max', [None])[i]
+                        if i < len(daily.get('uv_index_max', []))
+                        else None
+                    ),
+                    'visibility': None,
+                    'aqi': None,
+                    'minutes_to_golden': None,
+                    'swell_height': None,
+                }
+                day_result = compute_score(day_wx, primary_ua.activity_type)
+                weekly.append({
+                    'date': day_str,
+                    'score': day_result['score'],
+                    'label': day_result['label'],
+                })
+            response['weekly'] = weekly
+
+    return JsonResponse(response)
+
+
+# ── Explore ──────────────────────────────────────────────────────
+
+def explore(request):
+    """Serve the Explore / Map page."""
+    return render(request, 'weather/explore.html', {'active_tab': 'explore'})
+
+
+# Category → Overpass tags mapping
+_SPOT_QUERIES = {
+    'park':   '["leisure"="park"]',
+    'trail':  '["route"="hiking"]',
+    'beach':  '["natural"="beach"]',
+    'sports': '["leisure"="sports_centre"]',
+    'pitch':  '["leisure"="pitch"]',
+    'swimming': '["leisure"="swimming_pool"]["access"!="private"]',
+    'viewpoint': '["tourism"="viewpoint"]',
+    'garden': '["leisure"="garden"]',
+    'playground': '["leisure"="playground"]',
+    'nature': '["leisure"="nature_reserve"]',
+}
+
+# Map spot categories to activity slugs for scoring
+_CATEGORY_ACTIVITIES = {
+    'park':       ['running', 'hiking', 'yoga'],
+    'trail':      ['hiking', 'trail-running', 'mountain-biking'],
+    'beach':      ['swimming', 'surfing', 'kayaking'],
+    'sports':     ['running', 'cycling', 'yoga'],
+    'pitch':      ['running'],
+    'swimming':   ['swimming'],
+    'viewpoint':  ['hiking', 'photography'],
+    'garden':     ['yoga', 'walking'],
+    'playground': ['walking'],
+    'nature':     ['hiking', 'photography', 'bird-watching'],
+}
+
+
+def nearby_spots(request):
+    """Fetch nearby outdoor spots from OpenStreetMap via Overpass API."""
+    lat = request.GET.get('lat')
+    lon = request.GET.get('lon')
+    radius = request.GET.get('radius', '5000')  # meters
+
+    if not lat or not lon:
+        return JsonResponse({'error': 'lat and lon required'}, status=400)
+
+    try:
+        lat = float(lat)
+        lon = float(lon)
+        radius = min(int(radius), 15000)  # cap at 15km
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'Invalid parameters'}, status=400)
+
+    # Build Overpass query for outdoor POIs
+    filters = []
+    for cat, tag in _SPOT_QUERIES.items():
+        filters.append(f'node{tag}(around:{radius},{lat},{lon});')
+        filters.append(f'way{tag}(around:{radius},{lat},{lon});')
+        filters.append(f'relation{tag}(around:{radius},{lat},{lon});')
+
+    query = f"""
+    [out:json][timeout:10];
+    (
+      {''.join(filters)}
+    );
+    out center 60;
+    """
+
+    try:
+        resp = requests.post(
+            'https://overpass-api.de/api/interpreter',
+            data={'data': query},
+            timeout=12,
+        )
+        if resp.status_code != 200:
+            return JsonResponse({'error': 'Overpass API error'}, status=502)
+        data = resp.json()
+    except Exception:
+        return JsonResponse({'error': 'Failed to fetch spots'}, status=502)
+
+    # Parse results
+    spots = []
+    seen = set()  # deduplicate by name
+
+    for el in data.get('elements', []):
+        tags = el.get('tags', {})
+        name = tags.get('name', '').strip()
+        if not name or name in seen:
+            continue
+        seen.add(name)
+
+        # Get coordinates (center for ways)
+        spot_lat = el.get('lat') or (el.get('center', {}).get('lat'))
+        spot_lon = el.get('lon') or (el.get('center', {}).get('lon'))
+        if not spot_lat or not spot_lon:
+            continue
+
+        # Determine category
+        category = 'park'  # default
+        if tags.get('natural') == 'beach':
+            category = 'beach'
+        elif tags.get('route') == 'hiking':
+            category = 'trail'
+        elif tags.get('leisure') == 'sports_centre':
+            category = 'sports'
+        elif tags.get('leisure') == 'pitch':
+            category = 'pitch'
+        elif tags.get('leisure') == 'swimming_pool':
+            category = 'swimming'
+        elif tags.get('tourism') == 'viewpoint':
+            category = 'viewpoint'
+        elif tags.get('leisure') == 'garden':
+            category = 'garden'
+        elif tags.get('leisure') == 'playground':
+            category = 'playground'
+        elif tags.get('leisure') == 'nature_reserve':
+            category = 'nature'
+
+        # Icon mapping
+        icons = {
+            'park': 'trees', 'trail': 'mountain', 'beach': 'umbrella',
+            'sports': 'dumbbell', 'pitch': 'goal', 'swimming': 'waves',
+            'viewpoint': 'binoculars', 'garden': 'flower-2',
+            'playground': 'baby', 'nature': 'leaf',
+        }
+
+        spots.append({
+            'name': name,
+            'lat': spot_lat,
+            'lon': spot_lon,
+            'category': category,
+            'icon': icons.get(category, 'map-pin'),
+            'activities': _CATEGORY_ACTIVITIES.get(category, []),
+            'tags': {
+                'surface': tags.get('surface', ''),
+                'sport': tags.get('sport', ''),
+                'access': tags.get('access', ''),
+            },
+        })
+
+        if len(spots) >= 50:
+            break
+
+    return JsonResponse({'spots': spots, 'count': len(spots)})

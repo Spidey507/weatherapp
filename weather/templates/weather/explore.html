@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Explore — Rutea{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{% static 'weather/css/explore.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="explore-page" id="explorePage">
+
+  <!-- Map -->
+  <div class="map-wrap" id="mapWrap">
+    <div id="map"></div>
+
+    <!-- Floating search -->
+    <div class="map-search" id="mapSearch">
+      <i data-lucide="search" class="map-search-icon"></i>
+      <input type="text" class="map-search-input" id="mapSearchInput" placeholder="Search a location..." autocomplete="off">
+      <div class="map-search-results" id="mapSearchResults"></div>
+    </div>
+
+    <!-- Locate me button -->
+    <button class="map-locate-btn" id="mapLocateBtn" title="My location">
+      <i data-lucide="locate"></i>
+    </button>
+
+    <!-- Legend -->
+    <div class="map-legend">
+      <span class="legend-dot legend-great"></span><span class="legend-label">Great</span>
+      <span class="legend-dot legend-ok"></span><span class="legend-label">OK</span>
+      <span class="legend-dot legend-low"></span><span class="legend-label">Poor</span>
+    </div>
+  </div>
+
+  <!-- Spot detail card (bottom sheet) -->
+  <div class="spot-sheet" id="spotSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-icon" id="sheetIcon"></div>
+      <div class="sheet-info">
+        <h3 class="sheet-name" id="sheetName">--</h3>
+        <span class="sheet-category" id="sheetCategory">--</span>
+      </div>
+      <button class="sheet-close" id="sheetClose"><i data-lucide="x"></i></button>
+    </div>
+    <div class="sheet-scores" id="sheetScores"></div>
+    <div class="sheet-actions">
+      <button class="sheet-action-btn" id="sheetDirections">
+        <i data-lucide="navigation"></i>
+        <span>Directions</span>
+      </button>
+      <button class="sheet-action-btn" id="sheetWeather">
+        <i data-lucide="cloud-sun"></i>
+        <span>Weather</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="map-loading" id="mapLoading" style="display:none;">
+    <div class="spinner"></div>
+    <span>Finding outdoor spots...</span>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{% static 'weather/js/explore.js' %}?v=1"></script>
+{% endblock %}

@@ -1,16 +1,294 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Profile — WeatherCast{% endblock %}
+{% block title %}Profile — Rutea{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'weather/css/auth.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'weather/css/profile.css' %}?v=2">
+{% endblock %}
 
 {% block content %}
-<div class="placeholder-page">
-  <div class="placeholder-icon"><i data-lucide="user"></i></div>
-  <h2 class="placeholder-title">Your Profile</h2>
-  {% if user.is_authenticated %}
-    <p class="placeholder-desc">Welcome, {{ user.email }}. Activity preferences coming soon.</p>
-  {% else %}
-    <p class="placeholder-desc">Sign in to save your activity preferences and locations.</p>
-    <a href="/accounts/login/" class="placeholder-btn">Sign In</a>
-  {% endif %}
+{% if user.is_authenticated %}
+<div class="profile-page">
+
+  <!-- ── User Info ── -->
+  <div class="profile-header card">
+    <div class="profile-avatar">
+      <i data-lucide="user"></i>
+    </div>
+    <div class="profile-info">
+      <h2 class="profile-name">{{ user.get_full_name|default:user.email }}</h2>
+      <p class="profile-email">{{ user.email }}</p>
+    </div>
+    <a href="{% url 'account_logout' %}" class="btn-signout">
+      <i data-lucide="log-out"></i>
+      <span>Sign Out</span>
+    </a>
+  </div>
+
+  <!-- ── Preferences ── -->
+  <div class="profile-section">
+    <div class="section-title">Preferences</div>
+
+    <!-- Units toggle -->
+    <div class="pref-row">
+      <div class="pref-info">
+        <i data-lucide="ruler" class="pref-icon"></i>
+        <div>
+          <div class="pref-label">Units</div>
+          <div class="pref-desc">Temperature, wind speed, distance</div>
+        </div>
+      </div>
+      <div class="unit-toggle" id="unitToggle">
+        <button class="unit-btn{% if use_metric %} active{% endif %}" data-unit="metric">°C / km</button>
+        <button class="unit-btn{% if not use_metric %} active{% endif %}" data-unit="imperial">°F / mi</button>
+      </div>
+    </div>
+
+    <!-- Home location -->
+    <div class="pref-row pref-row-col">
+      <div class="pref-info">
+        <i data-lucide="home" class="pref-icon"></i>
+        <div>
+          <div class="pref-label">Home Location</div>
+          <div class="pref-desc">Auto-load weather when you open the app</div>
+        </div>
+      </div>
+      <div class="home-loc-wrap" id="homeLocWrap">
+        {% if home_location_name %}
+        <div class="home-loc-current" id="homeLocCurrent">
+          <i data-lucide="map-pin" class="home-loc-pin"></i>
+          <span class="home-loc-name" id="homeLocName">{{ home_location_name }}</span>
+          <button class="home-loc-clear" id="homeLocClear" title="Remove">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        {% else %}
+        <div class="home-loc-current" id="homeLocCurrent" style="display:none;">
+          <i data-lucide="map-pin" class="home-loc-pin"></i>
+          <span class="home-loc-name" id="homeLocName"></span>
+          <button class="home-loc-clear" id="homeLocClear" title="Remove">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        {% endif %}
+        <div class="home-loc-search{% if home_location_name %} hidden{% endif %}" id="homeLocSearch">
+          <div class="home-search-input-wrap">
+            <i data-lucide="search" class="home-search-icon"></i>
+            <input type="text" class="home-search-input" id="homeSearchInput" placeholder="Search your city..." autocomplete="off">
+          </div>
+          <div class="home-search-results" id="homeSearchResults"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Activity Selection ── -->
+  <div class="profile-section">
+    <div class="section-title-row">
+      <div class="section-title">Your Activities</div>
+      <span class="section-hint">Tap to toggle</span>
+    </div>
+    <p class="section-desc">Select the activities you enjoy. Only your selected activities will show scores on the dashboard.</p>
+
+    <div class="activity-grid" id="activityGrid">
+      {% for act in activities %}
+      <div
+        class="activity-chip{% if act.selected %} selected{% endif %}{% if act.is_primary %} primary{% endif %}"
+        data-slug="{{ act.slug }}"
+        data-name="{{ act.name }}"
+      >
+        <div class="chip-icon"><i data-lucide="{{ act.icon }}"></i></div>
+        <div class="chip-name">{{ act.name }}</div>
+        <div class="chip-check"><i data-lucide="check"></i></div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="primary-row" id="primaryRow" style="{% if not user.is_authenticated %}display:none{% endif %}">
+      <div class="primary-label">
+        <i data-lucide="star" class="primary-star-icon"></i>
+        <span>Primary activity:</span>
+      </div>
+      <select class="primary-select" id="primarySelect">
+        <option value="">None</option>
+        {% for act in activities %}
+          {% if act.selected %}
+          <option value="{{ act.slug }}" {% if act.is_primary %}selected{% endif %}>{{ act.name }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+  </div>
 </div>
+
+{% else %}
+<!-- ── Not authenticated ── -->
+<div class="auth-page">
+  <div class="auth-card card">
+    <div class="auth-icon-wrap"><i data-lucide="user"></i></div>
+    <h1 class="auth-title">Your Profile</h1>
+    <p class="auth-subtitle">Sign in to save your activity preferences and personalise your Rutea dashboard.</p>
+    <a href="{% url 'account_login' %}" class="btn-submit" style="text-align:center;text-decoration:none;display:block;">Sign In</a>
+    <p class="auth-footer">
+      Don't have an account? <a href="{% url 'account_signup' %}">Sign up</a>
+    </p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('activityGrid');
+  const primarySelect = document.getElementById('primarySelect');
+
+  function getCsrf() {
+    const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+    return cookie ? cookie.split('=')[1] : '';
+  }
+
+  function postJSON(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+      body: JSON.stringify(body),
+    });
+  }
+
+  /* ── Units toggle ── */
+  const unitToggle = document.getElementById('unitToggle');
+  if (unitToggle) {
+    unitToggle.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.unit-btn');
+      if (!btn || btn.classList.contains('active')) return;
+      const useMetric = btn.dataset.unit === 'metric';
+      try {
+        const res = await postJSON('/profile/api/units/', { use_metric: useMetric });
+        if (res.ok) {
+          unitToggle.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        }
+      } catch (err) { console.error('Units update failed:', err); }
+    });
+  }
+
+  /* ── Home location search ── */
+  const homeInput = document.getElementById('homeSearchInput');
+  const homeResults = document.getElementById('homeSearchResults');
+  const homeLocCurrent = document.getElementById('homeLocCurrent');
+  const homeLocName = document.getElementById('homeLocName');
+  const homeLocSearch = document.getElementById('homeLocSearch');
+  const homeLocClear = document.getElementById('homeLocClear');
+  let homeDebounce = null;
+
+  if (homeInput) {
+    homeInput.addEventListener('input', () => {
+      clearTimeout(homeDebounce);
+      const q = homeInput.value.trim();
+      if (q.length < 2) { homeResults.innerHTML = ''; return; }
+      homeDebounce = setTimeout(async () => {
+        try {
+          const r = await fetch(`/weather/api/geocode/?q=${encodeURIComponent(q)}`);
+          const d = await r.json();
+          renderHomeResults(d.results || []);
+        } catch { homeResults.innerHTML = ''; }
+      }, 300);
+    });
+  }
+
+  function renderHomeResults(results) {
+    if (!results.length) { homeResults.innerHTML = ''; return; }
+    homeResults.innerHTML = results.map((r, i) => `
+      <div class="home-result-item" data-i="${i}">
+        <div class="home-result-name">${esc(r.name)}</div>
+        <div class="home-result-detail">${esc((r.admin1 ? r.admin1 + ', ' : '') + r.country)}</div>
+      </div>`).join('');
+
+    homeResults.querySelectorAll('.home-result-item').forEach(el => {
+      el.addEventListener('click', async () => {
+        const r = results[+el.dataset.i];
+        const label = r.name + (r.country ? ', ' + r.country : '');
+        try {
+          const res = await postJSON('/profile/api/home-location/', {
+            name: label, latitude: r.latitude, longitude: r.longitude,
+          });
+          if (res.ok) {
+            homeLocName.textContent = label;
+            homeLocCurrent.style.display = '';
+            homeLocSearch.classList.add('hidden');
+            homeInput.value = '';
+            homeResults.innerHTML = '';
+          }
+        } catch (err) { console.error('Home location save failed:', err); }
+        if (window.lucide) lucide.createIcons();
+      });
+    });
+  }
+
+  if (homeLocClear) {
+    homeLocClear.addEventListener('click', async () => {
+      try {
+        const res = await postJSON('/profile/api/clear-home-location/', {});
+        if (res.ok) {
+          homeLocCurrent.style.display = 'none';
+          homeLocSearch.classList.remove('hidden');
+          homeLocName.textContent = '';
+        }
+      } catch (err) { console.error('Clear home failed:', err); }
+    });
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  /* ── Activity toggle ── */
+  if (!grid) return;
+
+  grid.addEventListener('click', async (e) => {
+    const chip = e.target.closest('.activity-chip');
+    if (!chip) return;
+    const slug = chip.dataset.slug;
+    const name = chip.dataset.name;
+    try {
+      const res = await postJSON('/profile/api/toggle-activity/', { slug });
+      const data = await res.json();
+      if (data.selected) {
+        chip.classList.add('selected');
+        if (primarySelect && !primarySelect.querySelector(`option[value="${slug}"]`)) {
+          const opt = document.createElement('option');
+          opt.value = slug;
+          opt.textContent = name;
+          primarySelect.appendChild(opt);
+        }
+      } else {
+        chip.classList.remove('selected', 'primary');
+        if (primarySelect) {
+          const opt = primarySelect.querySelector(`option[value="${slug}"]`);
+          if (opt) opt.remove();
+          if (primarySelect.value === slug) { primarySelect.value = ''; setPrimary(''); }
+        }
+      }
+    } catch (err) { console.error('Toggle failed:', err); }
+  });
+
+  if (primarySelect) {
+    primarySelect.addEventListener('change', () => setPrimary(primarySelect.value));
+  }
+
+  async function setPrimary(slug) {
+    try {
+      await postJSON('/profile/api/set-primary/', { slug });
+      grid.querySelectorAll('.activity-chip').forEach(c => {
+        c.classList.toggle('primary', c.dataset.slug === slug);
+      });
+    } catch (err) { console.error('Set primary failed:', err); }
+  }
+});
+</script>
 {% endblock %}

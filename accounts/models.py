@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -20,3 +21,25 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email or self.username
+
+
+class SavedLocation(models.Model):
+    """A bookmarked city for quick-switching."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='saved_locations',
+    )
+    name = models.CharField(max_length=200)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    sort_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'saved_locations'
+        ordering = ['sort_order', 'created_at']
+        unique_together = [('user', 'name')]
+
+    def __str__(self):
+        return f'{self.name} ({self.user})'

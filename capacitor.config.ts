@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.weathercast.app',
-  appName: 'WeatherCast',
+  appId: 'com.rutea.app',
+  appName: 'Rutea',
   // In production, point to your deployed Django server URL.
   // For dev, use your local network IP so the mobile device can reach it.
   server: {

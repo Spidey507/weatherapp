@@ -1,6 +1,6 @@
 """
-Django settings for the Outdoor Activity Hub.
-Weather is one feature of a larger mobile-first application.
+Django settings for Rutea — Outdoor Activity Hub.
+Weather-powered activity scoring in a mobile-first application.
 """
 
 from pathlib import Path
@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'corsheaders',
     'django_filters',
     'django_celery_beat',
@@ -101,6 +102,20 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# ── Google OAuth ──────────────────────────────────────────────────
+# Credentials stored in DB (socialaccount_socialapp table).
+# Manage via Django admin or the setup script.
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    },
+}
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# Allow JS to read the csrftoken cookie (needed for AJAX toggle endpoints)
+CSRF_COOKIE_HTTPONLY = False
 
 # ── Django REST Framework ─────────────────────────────────────────
 REST_FRAMEWORK = {

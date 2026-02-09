@@ -1,4 +1,310 @@
 /* =========================================
+   GREETING ROW
+   ========================================= */
+.greeting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.greeting-text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.greeting-hello {
+  font-size: 0.82rem;
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.greeting-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+/* Primary activity badge (greeting) */
+.greeting-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(212,149,107,0.08);
+  border: 1px solid rgba(212,149,107,0.18);
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.greeting-primary-icon { width: 13px; height: 13px; stroke-width: 1.8; color: var(--accent); }
+.greeting-primary-name { white-space: nowrap; }
+.greeting-primary-score {
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 20px;
+  text-align: center;
+}
+
+/* =========================================
+   BEST TIME WIDGET
+   ========================================= */
+.best-time-card {
+  grid-column: 1 / -1;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(212,149,107,0.05);
+  border-color: rgba(212,149,107,0.12);
+}
+
+.best-time-left { flex: 1; }
+
+.best-time-label {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+
+.best-time-label strong {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.best-time-value {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+/* Score ring */
+.best-time-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.best-time-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 2.5;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.8s ease;
+}
+
+.ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* =========================================
+   SMART TIP
+   ========================================= */
+.smart-tip {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 18px;
+  background: rgba(212,149,107,0.04);
+  border: 1px solid rgba(212,149,107,0.1);
+  border-radius: var(--radius);
+}
+
+.smart-tip-icon {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.8;
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.smart-tip-text {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* =========================================
+   WEEKLY OUTLOOK
+   ========================================= */
+.weekly-outlook {
+  grid-column: 1 / -1;
+}
+
+.weekly-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.weekly-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 4px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+
+.weekly-day-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+}
+
+.weekly-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.weekly-dot.dot-great { background: var(--accent); box-shadow: 0 0 8px rgba(212,149,107,0.4); }
+.weekly-dot.dot-ok    { background: var(--text-2); }
+.weekly-dot.dot-low   { background: var(--text-3); opacity: 0.5; }
+
+.weekly-day-score {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.weekly-day:hover .weekly-dot { transform: scale(1.3); }
+
+/* =========================================
+   SAVED LOCATIONS BAR
+   ========================================= */
+.saved-bar {
+  display: none;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.saved-bar::-webkit-scrollbar { display: none; }
+
+.saved-bar:not(:empty) { display: flex; }
+
+.saved-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  color: var(--text-3);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.saved-chip svg { width: 12px; height: 12px; stroke-width: 1.8; }
+
+.saved-chip:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-2);
+}
+
+.saved-chip.active {
+  background: rgba(212,149,107,0.1);
+  border-color: rgba(212,149,107,0.25);
+  color: var(--accent);
+}
+
+.saved-chip.saved-add {
+  border-style: dashed;
+  color: var(--text-3);
+}
+
+.saved-chip.saved-add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.saved-remove {
+  font-size: 0.85rem;
+  opacity: 0;
+  margin-left: 2px;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+
+.saved-chip:hover .saved-remove { opacity: 0.6; }
+.saved-remove:hover { opacity: 1 !important; color: rgba(220,100,100,0.9); }
+
+/* =========================================
+   SHARE BUTTON
+   ========================================= */
+.btn-share {
+  margin-top: auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  z-index: 2;
+  position: relative;
+}
+
+.btn-share:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+
+.btn-share.shared {
+  background: rgba(212,149,107,0.15);
+  color: var(--accent);
+  border-color: rgba(212,149,107,0.3);
+}
+
+.btn-share svg { width: 14px; height: 14px; stroke-width: 1.8; }
+
+/* =========================================
    WEATHER DASHBOARD
    ========================================= */
 .dashboard {
@@ -782,6 +1088,35 @@ body.night .hero-card::before {
   .blob-2 { width: 150px; height: 150px; bottom: -40px; right: -20px; }
   .blob-3 { width: 120px; height: 120px; }
   .lava-blob { filter: blur(42px); }
+
+  /* ── Greeting row — stack on mobile ── */
+  .greeting-row { flex-wrap: wrap; gap: 8px; }
+  .greeting-name { font-size: 0.95rem; }
+  .greeting-primary { padding: 5px 10px; font-size: 0.68rem; }
+
+  /* ── Smart tip — compact ── */
+  .smart-tip { padding: 12px 14px; }
+  .smart-tip-text { font-size: 0.76rem; }
+
+  /* ── Best time — compact ── */
+  .best-time-card { padding: 14px 16px; border-radius: 14px; }
+  .best-time-value { font-size: 1.1rem; }
+  .best-time-ring { width: 44px; height: 44px; }
+  .ring-text { font-size: 0.78rem; }
+
+  /* ── Weekly outlook — compact ── */
+  .weekly-dots { gap: 4px; }
+  .weekly-day { padding: 10px 2px; }
+  .weekly-day-name { font-size: 0.58rem; }
+  .weekly-dot { width: 10px; height: 10px; }
+  .weekly-day-score { font-size: 0.65rem; }
+
+  /* ── Saved bar ── */
+  .saved-chip { padding: 5px 10px; font-size: 0.68rem; }
+
+  /* ── Share button ── */
+  .btn-share { width: 28px; height: 28px; }
+  .btn-share svg { width: 12px; height: 12px; }
 
   /* ── Scores — 2 columns, compact ── */
   .scores-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

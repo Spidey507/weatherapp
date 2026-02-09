@@ -1,4 +1,4 @@
-const CACHE_NAME = 'weathercast-v1';
+const CACHE_NAME = 'rutea-v1';
 const STATIC_ASSETS = [
   '/',
   '/static/weather/css/base.css',

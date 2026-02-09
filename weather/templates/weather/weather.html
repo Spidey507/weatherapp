@@ -1,13 +1,43 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}WeatherCast — Dashboard{% endblock %}
+{% block title %}Rutea — Dashboard{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'weather/css/weather.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'weather/css/weather.css' %}?v=8">
 {% endblock %}
 
 {% block content %}
+  <!-- User prefs for JS -->
+  <div id="userPrefs" class="hidden"
+    data-metric="{% if user.is_authenticated %}{{ use_metric|yesno:'true,false' }}{% else %}true{% endif %}"
+    data-authed="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+    {% if home_lat and home_lon %}
+    data-home-lat="{{ home_lat }}"
+    data-home-lon="{{ home_lon }}"
+    data-home-name="{{ home_name }}"
+    {% endif %}
+  ></div>
+  {% if saved_locations_json %}
+  <script id="savedLocationsData" type="application/json">{{ saved_locations_json|safe }}</script>
+  {% endif %}
+  <!-- ===== GREETING (personalised) ===== -->
+  {% if user.is_authenticated %}
+  <div class="greeting-row" id="greetingRow">
+    <div class="greeting-text">
+      <span class="greeting-hello" id="greetingHello">Hello,</span>
+      <span class="greeting-name">{{ user_first_name }}</span>
+    </div>
+    {% if primary_activity %}
+    <div class="greeting-primary" id="greetingPrimary" data-slug="{{ primary_activity.slug }}">
+      <i data-lucide="{{ primary_activity.icon }}" class="greeting-primary-icon"></i>
+      <span class="greeting-primary-name">{{ primary_activity.name }}</span>
+      <span class="greeting-primary-score" id="primaryScoreBadge">--</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <!-- ===== SEARCH BAR (weather-specific) ===== -->
   <div class="weather-search">
     <div class="search-wrapper">
@@ -21,11 +51,21 @@
     </button>
   </div>
 
+  <!-- ===== SAVED LOCATIONS BAR ===== -->
+  {% if user.is_authenticated %}
+  <div class="saved-bar" id="savedBar"></div>
+  {% endif %}
+
   <!-- ===== WELCOME ===== -->
   <div class="state-message" id="welcomeState">
     <div class="state-icon"><i data-lucide="globe"></i></div>
+    {% if user.is_authenticated %}
+    <h2>Where are you heading?</h2>
+    <p>Search a city or tap My Location to see conditions and activity scores.</p>
+    {% else %}
     <h2>Check the forecast</h2>
     <p>Search for any city worldwide or allow location access to get your local weather instantly.</p>
+    {% endif %}
   </div>
 
   <!-- ===== LOADING ===== -->
@@ -60,14 +100,50 @@
         <div class="clock-label">Local Time</div>
         <div class="clock-time" id="clockTime">--:--</div>
         <div class="clock-date" id="clockDate"></div>
+        <button class="btn-share" id="btnShare" title="Share weather">
+          <i data-lucide="share-2"></i>
+        </button>
       </div>
     </div>
+
+    <!-- Smart tip -->
+    <div class="smart-tip" id="smartTip" style="display:none;">
+      <i data-lucide="sparkles" class="smart-tip-icon"></i>
+      <span class="smart-tip-text" id="smartTipText"></span>
+    </div>
+
+    <!-- Best Time Widget (personalised, shown to logged-in users with a primary activity) -->
+    {% if primary_activity %}
+    <div class="best-time-card card" id="bestTimeCard" style="display:none;">
+      <div class="best-time-left">
+        <div class="best-time-label">Best time for <strong>{{ primary_activity.name }}</strong></div>
+        <div class="best-time-value" id="bestTimeValue">--</div>
+      </div>
+      <div class="best-time-score" id="bestTimeScore">
+        <div class="best-time-ring" id="bestTimeRing">
+          <svg viewBox="0 0 36 36">
+            <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="ring-fill" id="bestTimeRingFill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span class="ring-text" id="bestTimeRingText">--</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     <!-- Activity Scores -->
     <div class="scores-section" id="scoresSection" style="display:none;">
       <div class="section-title">Activity Scores</div>
       <div class="scores-grid" id="scoresGrid"></div>
     </div>
+
+    <!-- Weekly Activity Outlook (primary activity) -->
+    {% if primary_activity %}
+    <div class="weekly-outlook" id="weeklyOutlook" style="display:none;">
+      <div class="section-title">{{ primary_activity.name }} — This Week</div>
+      <div class="weekly-dots" id="weeklyDots"></div>
+    </div>
+    {% endif %}
 
     <!-- Detail cards -->
     <div class="details-grid" id="detailsGrid">
@@ -153,5 +229,5 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script type="module" src="{% static 'weather/js/app.js' %}?v=5"></script>
+  <script type="module" src="{% static 'weather/js/app.js' %}?v=8"></script>
 {% endblock %}

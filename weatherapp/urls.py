@@ -8,11 +8,7 @@ urlpatterns = [
 
     # Main tabs
     path('', include('weather.urls')),
-    path('explore/', TemplateView.as_view(
-        template_name='placeholder.html',
-        extra_context={'active_tab': 'explore', 'page_title': 'Explore',
-                       'page_lucide': 'compass', 'page_desc': 'Discover outdoor spots near you.'},
-    ), name='explore'),
+    path('explore/', include('weather.explore_urls')),
     path('log/', TemplateView.as_view(
         template_name='placeholder.html',
         extra_context={'active_tab': 'log', 'page_title': 'Activity Log',

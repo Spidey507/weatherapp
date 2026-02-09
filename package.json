@@ -1,10 +1,10 @@
 {
-  "name": "weathercast",
+  "name": "rutea",
   "version": "1.0.0",
-  "description": "Outdoor Activity Hub — the perfect time and place for your next adventure",
+  "description": "Rutea — the perfect time and place for your next adventure",
   "private": true,
   "scripts": {
-    "cap:init": "npx cap init WeatherCast com.weathercast.app --web-dir=staticfiles",
+    "cap:init": "npx cap init Rutea com.rutea.app --web-dir=staticfiles",
     "cap:add:android": "npx cap add android",
     "cap:add:ios": "npx cap add ios",
     "cap:sync": "npx cap sync",
