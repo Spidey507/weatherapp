@@ -22,7 +22,11 @@
   --radius-sm: 8px;
 }
 
-html { font-size: 16px; }
+html {
+  font-size: 16px;
+  overflow-x: hidden;
+  width: 100%;
+}
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -33,6 +37,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   transition: background 1.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 body.night {
@@ -75,6 +81,9 @@ body::after {
   max-width: 1060px;
   margin: 0 auto;
   padding: 20px 24px 48px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* =========================================
@@ -338,32 +347,166 @@ body::after {
 .error-toast.visible { transform: translateX(-50%) translateY(0); }
 
 /* =========================================
-   RESPONSIVE — shared breakpoints
+   RESPONSIVE — LAPTOP (≤ 1024px)
    ========================================= */
-@media (max-width: 680px) {
-  .container { padding: 16px 14px 36px; }
+@media (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    padding: 20px 20px 40px;
+  }
+
+  .search-wrapper { width: 340px; }
+}
+
+/* =========================================
+   RESPONSIVE — TABLET (≤ 768px)
+   ========================================= */
+@media (max-width: 768px) {
+  .container { 
+    padding: 16px 16px 36px; 
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
 
   .header {
     flex-wrap: wrap;
     gap: 10px;
   }
 
-  .brand { width: 100%; }
-
   .search-wrapper {
     width: auto;
     flex: 1;
     min-width: 0;
   }
+
+  .btn-location {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  .state-message { padding: 72px 20px 60px; }
+  .state-message .state-icon { font-size: 3rem; }
+  .state-message h2 { font-size: 1.3rem; }
+  .state-message p { font-size: 0.9rem; }
+
+  .error-toast { max-width: calc(100vw - 32px); }
 }
 
-@media (max-width: 420px) {
-  .header { gap: 8px; }
+/* =========================================
+   RESPONSIVE — MOBILE PORTRAIT (≤ 480px)
+   Native-app feel: generous spacing,
+   full-width sections, big touch targets.
+   ========================================= */
+@media (max-width: 480px) {
+  html { font-size: 15px; }
 
-  .btn-location span { display: none; }
-  .btn-location { padding: 10px 12px; }
+  .container { 
+    padding: 14px 14px 40px; 
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Ambient glows — scaled for mobile */
+  body::before { width: 300px; height: 300px; top: -15%; right: -20%; }
+  body::after  { width: 260px; height: 260px; bottom: -12%; left: -18%; }
+
+  /* ── Header — brand + location top row, search full-width below ── */
+  .header {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .brand {
+    order: 1;
+    width: auto;
+    gap: 8px;
+  }
+  .brand-logo { width: 32px; height: 32px; font-size: 1.3rem; }
+  .brand-name { font-size: 1.08rem; }
+
+  .btn-location {
+    order: 2;
+    padding: 10px 12px;
+    border-radius: 10px;
+    min-height: 42px;
+    min-width: 42px;
+    justify-content: center;
+  }
+  .btn-location span:not(.btn-emoji) { display: none; }
+  .btn-location .btn-emoji { font-size: 1.1rem; }
+
+  .search-wrapper {
+    order: 3;
+    width: 100%;
+    flex: none;
+  }
+
+  .search-input {
+    padding: 14px 14px 14px 42px;
+    font-size: 0.92rem;
+    border-radius: 12px;
+    min-height: 48px;
+  }
+
+  .search-icon { left: 14px; width: 16px; height: 16px; }
+
+  /* Search dropdown — full-width overlay */
+  .search-results {
+    left: 0;
+    right: 0;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .search-result-item { padding: 14px 16px; }
+  .search-result-name { font-size: 0.92rem; }
+  .search-result-detail { font-size: 0.78rem; margin-top: 2px; }
+
+  /* ── State screens — bigger, centered ── */
+  .state-message { padding: 64px 20px 50px; }
+  .state-message .state-icon { font-size: 3rem; margin-bottom: 16px; }
+  .state-message h2 { font-size: 1.25rem; margin-bottom: 8px; }
+  .state-message p { font-size: 0.88rem; max-width: 300px; line-height: 1.6; }
+
+  /* ── Shared ── */
+  .section-title { font-size: 0.74rem; letter-spacing: 1.1px; margin-bottom: 10px; }
+
+  .card { border-radius: 14px; }
+
+  .error-toast {
+    max-width: calc(100vw - 28px);
+    font-size: 0.86rem;
+    padding: 13px 22px;
+    border-radius: 12px;
+  }
 }
 
+/* =========================================
+   RESPONSIVE — SMALL MOBILE (≤ 360px)
+   ========================================= */
+@media (max-width: 360px) {
+  html { font-size: 14px; }
+  .container { 
+    padding: 12px 10px 32px; 
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .brand-name { font-size: 0.98rem; }
+  .header { gap: 10px; }
+
+  .search-input { min-height: 44px; padding: 12px 12px 12px 38px; }
+  .btn-location { min-height: 38px; min-width: 38px; padding: 8px 10px; }
+}
+
+/* =========================================
+   RESPONSIVE — LANDSCAPE SHORT SCREENS
+   ========================================= */
 @media (max-height: 600px) and (orientation: landscape) {
-  .state-message { padding: 40px 20px; }
+  .state-message { padding: 28px 20px 20px; }
+  .state-message .state-icon { font-size: 2.2rem; margin-bottom: 10px; }
 }

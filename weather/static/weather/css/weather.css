@@ -8,9 +8,11 @@
 
 .dashboard.visible {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: auto auto auto auto;
   animation: fadeUp 0.5s ease both;
+  width: 100%;
+  min-width: 0;
 }
 
 @keyframes fadeUp {
@@ -33,6 +35,9 @@
   position: relative;
   overflow: hidden;
   border-color: rgba(var(--hue), 0.12);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* --- Lava lamp blobs --- */
@@ -210,8 +215,10 @@ body.night .hero-card::before {
 .details-grid {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  width: 100%;
+  min-width: 0;
 }
 
 .detail-card {
@@ -263,15 +270,23 @@ body.night .hero-card::before {
 
 .hourly-card {
   padding: 2px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .hourly-scroll {
   display: flex;
   gap: 4px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 14px 10px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hourly-scroll::-webkit-scrollbar { height: 4px; }
@@ -332,6 +347,10 @@ body.night .hero-card::before {
 
 .forecast-card {
   padding: 8px 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .forecast-row {
@@ -340,6 +359,9 @@ body.night .hero-card::before {
   padding: 13px 0;
   gap: 14px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .forecast-row:last-child { border-bottom: none; }
@@ -421,8 +443,10 @@ body.night .hero-card::before {
 .sun-card-wrap {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+  width: 100%;
+  min-width: 0;
 }
 
 .sun-card {
@@ -453,75 +477,397 @@ body.night .hero-card::before {
 }
 
 /* =========================================
-   RESPONSIVE — weather-specific
+   RESPONSIVE — LAPTOP (≤ 1024px)
    ========================================= */
-@media (max-width: 860px) {
-  .details-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+@media (max-width: 1024px) {
+  .dashboard.visible { gap: 14px; }
 
-  .forecast-bar-track { width: 70px; }
+  .hero-card { padding: 28px 28px 24px; }
+  .hero-temp { font-size: 5rem; letter-spacing: -4px; }
+  .clock-time { font-size: 2.2rem; }
+
+  .details-grid { gap: 10px; }
+
+  .forecast-bar-track { width: 80px; }
 }
 
-@media (max-width: 680px) {
+/* =========================================
+   RESPONSIVE — TABLET (≤ 768px)
+   ========================================= */
+@media (max-width: 768px) {
   .dashboard.visible {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    min-width: 0;
   }
 
+  /* ── Hero — horizontal but tighter ── */
+  .hero-card {
+    padding: 24px 22px 20px;
+    gap: 18px;
+  }
+  .hero-city { font-size: 1.4rem; }
+  .hero-condition { font-size: 0.88rem; margin-bottom: 16px; }
+  .hero-temp { font-size: 4.2rem; letter-spacing: -3px; }
+  .hero-temp-unit { font-size: 1.7rem; }
+  .hero-icon { font-size: 3.4rem; }
+  .hero-temp-row { gap: 14px; }
+  .clock-time { font-size: 1.8rem; letter-spacing: 1px; }
+  .clock-label { font-size: 0.62rem; }
+  .clock-date { font-size: 0.78rem; }
+
+  /* ── Details — 3 columns ── */
+  .details-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .detail-card { padding: 16px 14px; }
+  .detail-value { font-size: 1.25rem; }
+
+  /* ── Sun ── */
+  .sun-card-wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .sun-card { padding: 16px 18px; }
+
+  /* ── Forecast ── */
+  .forecast-bar-track { width: 60px; }
+  .forecast-row-desc { font-size: 0.76rem; }
+  .forecast-row { gap: 10px; }
+
+  /* ── Hourly ── */
+  .hourly-item { width: 64px; }
+
+  /* ── Lava blobs — slightly smaller ── */
+  .blob-1 { width: 220px; height: 220px; }
+  .blob-2 { width: 170px; height: 170px; }
+  .blob-3 { width: 150px; height: 150px; }
+}
+
+/* =========================================
+   RESPONSIVE — MOBILE PORTRAIT (≤ 480px)
+   Redesigned from scratch for a native
+   weather-app feel — generous white-space,
+   bold type, full-width sections.
+   ========================================= */
+@media (max-width: 480px) {
+  .dashboard.visible { 
+    gap: 16px; 
+    min-width: 0;
+  }
+
+  /* ──────────────────────────────────────
+     HERO — full-width centered card,
+     Apple Weather inspired vertical layout
+     ────────────────────────────────────── */
   .hero-card {
     flex-direction: column;
-    padding: 24px 22px 22px;
-    gap: 20px;
+    align-items: center;
+    text-align: center;
+    padding: 36px 24px 22px;
+    gap: 0;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .hero-location {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+    width: 100%;
+    min-width: 0;
+  }
+  .hero-city {
+    font-size: 1.65rem;
+    letter-spacing: -0.3px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .hero-country {
+    font-size: 0.8rem;
+    color: var(--text-3);
+  }
+
+  .hero-condition {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    color: var(--text-2);
+  }
+
+  /* Icon above temperature */
+  .hero-temp-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-icon {
+    font-size: 4.8rem;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.25));
+  }
+  .hero-temp {
+    font-size: 5.5rem;
+    font-weight: 150;
+    letter-spacing: -4px;
+    line-height: 0.9;
+  }
+  .hero-temp-unit {
+    font-size: 2rem;
+    font-weight: 200;
+  }
+
+  /* Clock — minimal row at card bottom */
   .hero-right {
-    text-align: left;
-    align-items: flex-start;
+    width: 100%;
     flex-direction: row;
-    gap: 14px;
-    align-items: baseline;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    padding-top: 18px;
+    margin-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .clock-label { display: none; }
+  .clock-time {
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--text-2);
+  }
+  .clock-date {
+    font-size: 0.78rem;
+    color: var(--text-3);
+  }
+  /* Separator dot between time and date */
+  .clock-time::after {
+    content: '\00b7';
+    margin-left: 8px;
+    color: var(--text-3);
+    font-weight: 400;
   }
 
-  .clock-time { font-size: 1.6rem; }
+  /* ── Lava blobs — scaled for mobile ── */
+  .blob-1 { width: 180px; height: 180px; top: -50px; left: -30px; }
+  .blob-2 { width: 150px; height: 150px; bottom: -40px; right: -20px; }
+  .blob-3 { width: 120px; height: 120px; }
+  .lava-blob { filter: blur(42px); }
 
-  .hero-temp { font-size: 4rem; letter-spacing: -3px; }
-  .hero-icon { font-size: 3.2rem; }
-  .hero-city { font-size: 1.35rem; }
-
+  /* ──────────────────────────────────────
+     DETAILS — 2-column grid, roomy cards
+     ────────────────────────────────────── */
   .details-grid {
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
-
-  .detail-value { font-size: 1.2rem; }
-
-  .hourly-section,
-  .forecast-section,
-  .sun-card-wrap {
-    grid-column: 1 / -1;
+  .detail-card {
+    padding: 16px 14px;
+    gap: 10px;
+    border-radius: 14px;
+    min-width: 0;
+    overflow: hidden;
   }
+  .detail-header { gap: 7px; }
+  .detail-emoji { font-size: 1rem; }
+  .detail-label { font-size: 0.66rem; letter-spacing: 0.8px; }
+  .detail-value { font-size: 1.25rem; }
+  .detail-sub { font-size: 0.72rem; }
 
-  .sun-card-wrap { grid-template-columns: 1fr 1fr; }
+  /* ──────────────────────────────────────
+     SUN CARDS — side by side, generous
+     ────────────────────────────────────── */
+  .sun-card-wrap { 
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); 
+    gap: 10px; 
+  }
+  .sun-card {
+    padding: 16px 14px;
+    gap: 12px;
+    border-radius: 14px;
+    min-width: 0;
+  }
+  .sun-icon { font-size: 1.6rem; }
+  .sun-label { font-size: 0.66rem; }
+  .sun-time { font-size: 1.15rem; }
 
-  .forecast-bar-track { width: 56px; }
+  /* ──────────────────────────────────────
+     HOURLY — edge-to-edge native feel
+     ────────────────────────────────────── */
+  .hourly-section {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .hourly-section .section-title {
+    padding-left: 0;
+    margin-bottom: 8px;
+  }
+  .hourly-card {
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+  .hourly-scroll {
+    padding: 14px 12px;
+    gap: 2px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hourly-item {
+    width: 64px;
+    min-width: 64px;
+    padding: 12px 6px;
+    gap: 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .hourly-icon { font-size: 1.4rem; }
+  .hourly-temp { font-size: 0.88rem; }
+  .hourly-time { font-size: 0.68rem; }
+  .hourly-precip { font-size: 0.62rem; }
 
+  /* ──────────────────────────────────────
+     FORECAST — clean rows, full-width bar
+     ────────────────────────────────────── */
+  .forecast-section {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .forecast-section .section-title { padding-left: 0; }
+  .forecast-card {
+    padding: 8px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+  .forecast-row {
+    padding: 13px 0;
+    gap: 8px;
+    min-width: 0;
+  }
   .forecast-row-desc { display: none; }
+  .forecast-day-name { 
+    width: 44px; 
+    font-size: 0.84rem; 
+    flex-shrink: 0;
+  }
+  .forecast-row-icon { 
+    font-size: 1.35rem; 
+    width: 30px; 
+    flex-shrink: 0;
+  }
+  .forecast-precip-badge { 
+    width: 38px; 
+    font-size: 0.68rem; 
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .forecast-bar-track {
+    width: 56px;
+    height: 5px;
+    border-radius: 3px;
+    flex-shrink: 1;
+    flex-grow: 0;
+    max-width: 80px;
+    min-width: 40px;
+  }
+  .forecast-temp-range {
+    flex: 1;
+    gap: 6px;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  .forecast-low-val { 
+    font-size: 0.84rem; 
+    width: 28px; 
+    flex-shrink: 0;
+  }
+  .forecast-high-val { 
+    font-size: 0.84rem; 
+    width: 28px; 
+    flex-shrink: 0;
+  }
 }
 
-@media (max-width: 420px) {
-  .hero-temp { font-size: 3.4rem; letter-spacing: -2px; }
-  .hero-icon { font-size: 2.6rem; }
-  .hero-temp-unit { font-size: 1.4rem; }
+/* =========================================
+   RESPONSIVE — SMALL MOBILE (≤ 360px)
+   ========================================= */
+@media (max-width: 360px) {
+  .dashboard.visible { 
+    gap: 12px; 
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
 
-  .details-grid { grid-template-columns: 1fr 1fr; }
+  /* Hero — still bold, tighter */
+  .hero-card { padding: 28px 18px 18px; border-radius: 14px; }
+  .hero-city { font-size: 1.45rem; }
+  .hero-icon { font-size: 4rem; }
+  .hero-temp { font-size: 4.6rem; letter-spacing: -3px; }
+  .hero-temp-unit { font-size: 1.6rem; }
+  .hero-right { padding-top: 14px; margin-top: 14px; }
 
-  .sun-card-wrap { grid-template-columns: 1fr; }
+  /* Details — tighter */
+  .details-grid { gap: 8px; }
+  .detail-card { padding: 14px 12px; gap: 8px; border-radius: 12px; }
+  .detail-value { font-size: 1.1rem; }
 
-  .forecast-bar-track { width: 44px; }
+  /* Sun — stack vertically */
+  .sun-card-wrap { grid-template-columns: 1fr; gap: 8px; }
 
-  .forecast-card { padding: 8px 12px; }
+  /* Hourly — smaller */
+  .hourly-item { width: 56px; padding: 10px 4px; }
+  .hourly-icon { font-size: 1.25rem; }
 
-  .hourly-item { width: 58px; }
+  /* Forecast — drop bar, use slash */
+  .forecast-bar-track { display: none; }
+  .forecast-temp-range { gap: 2px; flex: 0; }
+  .forecast-low-val,
+  .forecast-high-val { width: auto; font-size: 0.84rem; }
+  .forecast-low-val::after {
+    content: ' /';
+    color: var(--text-3);
+  }
+}
+
+/* =========================================
+   RESPONSIVE — LANDSCAPE SHORT SCREENS
+   ========================================= */
+@media (max-height: 560px) and (orientation: landscape) {
+  .hero-card {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    padding: 18px 22px;
+  }
+  .hero-left { align-items: flex-start; }
+  .hero-location { flex-direction: row; align-items: baseline; gap: 8px; }
+  .hero-condition { margin-bottom: 8px; }
+  .hero-temp { font-size: 3rem; letter-spacing: -2px; }
+  .hero-icon { font-size: 2.4rem; }
+  .hero-temp-row { gap: 10px; }
+
+  .hero-right {
+    flex-direction: column;
+    width: auto;
+    align-items: flex-end;
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+    gap: 4px;
+  }
+  .clock-label { display: block; font-size: 0.6rem; }
+  .clock-time { font-size: 1.4rem; font-weight: 200; }
+
+  .dashboard.visible { gap: 8px; }
+  .details-grid { grid-template-columns: repeat(3, 1fr); }
+  .detail-card { padding: 10px; }
+  .detail-value { font-size: 1rem; }
 }
