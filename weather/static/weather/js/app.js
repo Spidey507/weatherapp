@@ -277,9 +277,19 @@ function animateDashboardEntrance() {
     { duration: 0.7, easing: SPRING_BOUNCE }
   );
 
+  /* 2 ── Score cards (if present) */
+  const scoreCards = document.querySelectorAll('.score-card');
+  if (scoreCards.length) {
+    animate(scoreCards,
+      { opacity: [0, 1], transform: ['translateY(20px) scale(0.97)', 'translateY(0) scale(1)'] },
+      { duration: 0.45, delay: stagger(0.06, { start: 0.12 }), easing: EASE_OUT_QUINT }
+    );
+  }
+
+  /* 3 ── Detail cards */
   animate(document.querySelectorAll('.detail-card'),
     { opacity: [0, 1], transform: ['translateY(24px) scale(0.96)', 'translateY(0) scale(1)'] },
-    { duration: 0.5, delay: stagger(0.06, { start: 0.15 }), easing: EASE_OUT_QUINT }
+    { duration: 0.5, delay: stagger(0.06, { start: 0.25 }), easing: EASE_OUT_QUINT }
   );
 
   animate(document.querySelectorAll('.sun-card'),
@@ -337,14 +347,86 @@ function animateDashboardEntrance() {
 async function loadWeather(lat, lon, city, country, tz) {
   showState('loading');
   try {
-    const r = await fetch(`/weather/api/weather/?lat=${lat}&lon=${lon}`);
-    if (!r.ok) throw 0;
-    const d = await r.json();
-    if (d.error) throw 0;
-    render(d, city, country, tz);
+    /* Fetch weather + activity scores in parallel */
+    const [weatherResp, scoresResp] = await Promise.all([
+      fetch(`/weather/api/weather/?lat=${lat}&lon=${lon}`),
+      fetch(`/weather/api/scores/?lat=${lat}&lon=${lon}`).catch(() => null),
+    ]);
+    if (!weatherResp.ok) throw 0;
+    const weatherData = await weatherResp.json();
+    if (weatherData.error) throw 0;
+
+    let scoresData = null;
+    if (scoresResp && scoresResp.ok) {
+      scoresData = await scoresResp.json();
+    }
+
+    render(weatherData, city, country, tz);
+    renderScores(scoresData);
   } catch {
     showError('Failed to load weather data.');
     showState('welcome');
+  }
+}
+
+/* ── Score rendering ── */
+function scoreColor(score) {
+  if (score >= 80) return 'var(--accent)';
+  if (score >= 60) return 'var(--text-2)';
+  return 'var(--text-3)';
+}
+
+function renderScores(data) {
+  const section = $('scoresSection');
+  const grid = $('scoresGrid');
+  if (!data || !data.scores || !data.scores.length) {
+    section.style.display = 'none';
+    return;
+  }
+
+  /* Show top 6 activities */
+  const top = data.scores.slice(0, 6);
+  grid.innerHTML = top.map(s => {
+    const pct = Math.min(100, Math.max(0, s.score));
+    const color = scoreColor(s.score);
+    const windowStr = s.best_window
+      ? `${s.best_window.start}–${s.best_window.end}`
+      : 'No window';
+
+    return `
+      <div class="score-card card">
+        <div class="score-card-header">
+          <span class="score-card-icon"><i data-lucide="${s.icon}"></i></span>
+          <span class="score-card-name">${s.name}</span>
+        </div>
+        <div class="score-card-value" style="color:${color}">${Math.round(s.score)}</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div class="score-card-meta">
+          <span class="score-label">${s.label}</span>
+          <span class="score-window"><i data-lucide="clock" class="score-clock-icon"></i>${windowStr}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  section.style.display = '';
+  renderIcons();
+
+  /* Animate score bars */
+  if (motion) {
+    const { animate, stagger } = motion;
+    animate(document.querySelectorAll('.score-card'),
+      { opacity: [0, 1], transform: ['translateY(16px) scale(0.97)', 'translateY(0) scale(1)'] },
+      { duration: 0.45, delay: stagger(0.06, { start: 0.1 }), easing: EASE_OUT_QUINT }
+    );
+    document.querySelectorAll('.score-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(() => {
+        animate(bar, { width: ['0%', w] }, { duration: 0.7, easing: EASE_OUT_QUINT });
+      }, 300);
+    });
   }
 }
 

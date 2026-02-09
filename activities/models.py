@@ -31,6 +31,12 @@ class ActivityType(models.Model):
     max_wind_speed = models.FloatField(default=30)
     max_rain_probability = models.FloatField(default=20)
 
+    # Display
+    icon_name = models.CharField(
+        max_length=40, default='activity',
+        help_text='Lucide icon name for display',
+    )
+
     is_active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
