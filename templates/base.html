@@ -3,23 +3,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{% block title %}WeatherCast{% endblock %}</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <meta name="theme-color" content="#191919">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WeatherCast">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'weather/css/base.css' %}?v=3">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'weather/css/base.css' %}?v=5">
   {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-<div class="container">
+<div class="app-shell">
   {% include "partials/_header.html" %}
-  {% block content %}{% endblock %}
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
 </div>
 
+{% include "partials/_bottom_nav.html" %}
 {% include "partials/_error_toast.html" %}
 
 {% block extra_js %}{% endblock %}
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+  // Render Lucide icons in static HTML
+  if (window.lucide) lucide.createIcons();
+</script>
 </body>
 </html>

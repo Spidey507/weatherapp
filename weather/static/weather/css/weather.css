@@ -157,10 +157,14 @@ body.night .hero-card::before {
 }
 
 .hero-icon {
-  font-size: 4.2rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
 }
+
+.hero-condition-icon { width: 56px; height: 56px; stroke-width: 1.5; }
 
 .hero-temp {
   font-size: 5.5rem;
@@ -234,11 +238,14 @@ body.night .hero-card::before {
   gap: 8px;
 }
 
-.detail-emoji {
-  font-size: 1rem;
-  line-height: 1;
+.detail-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-3);
   flex-shrink: 0;
 }
+
+.detail-icon svg { width: 16px; height: 16px; stroke-width: 1.8; }
 
 .detail-label {
   font-size: 0.7rem;
@@ -325,7 +332,14 @@ body.night .hero-card::before {
 
 .hourly-item.now .hourly-time { color: var(--accent); }
 
-.hourly-icon { font-size: 1.45rem; line-height: 1; }
+.hourly-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.hourly-icon svg { width: 22px; height: 22px; stroke-width: 1.6; }
 
 .hourly-temp {
   font-size: 0.88rem;
@@ -336,7 +350,12 @@ body.night .hero-card::before {
   font-size: 0.65rem;
   color: var(--accent-blue);
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
+
+.precip-icon { width: 10px; height: 10px; stroke-width: 2; }
 
 /* =========================================
    7-DAY FORECAST
@@ -376,11 +395,15 @@ body.night .hero-card::before {
 .forecast-day-name.today { color: var(--accent); }
 
 .forecast-row-icon {
-  font-size: 1.5rem;
   width: 36px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
   flex-shrink: 0;
 }
+
+.forecast-row-icon svg { width: 20px; height: 20px; stroke-width: 1.6; }
 
 .forecast-row-desc {
   font-size: 0.82rem;
@@ -396,10 +419,15 @@ body.night .hero-card::before {
   font-size: 0.72rem;
   color: var(--accent-blue);
   font-weight: 500;
-  width: 42px;
-  text-align: right;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
   flex-shrink: 0;
 }
+
+.forecast-precip-badge .precip-icon { width: 11px; height: 11px; }
 
 .forecast-temp-range {
   display: flex;
@@ -457,9 +485,13 @@ body.night .hero-card::before {
 }
 
 .sun-icon {
-  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  color: var(--text-3);
   flex-shrink: 0;
 }
+
+.sun-icon svg { width: 24px; height: 24px; stroke-width: 1.6; }
 
 .sun-info { display: flex; flex-direction: column; gap: 2px; }
 
@@ -510,7 +542,7 @@ body.night .hero-card::before {
   .hero-condition { font-size: 0.88rem; margin-bottom: 16px; }
   .hero-temp { font-size: 4.2rem; letter-spacing: -3px; }
   .hero-temp-unit { font-size: 1.7rem; }
-  .hero-icon { font-size: 3.4rem; }
+  .hero-condition-icon { width: 44px; height: 44px; }
   .hero-temp-row { gap: 14px; }
   .clock-time { font-size: 1.8rem; letter-spacing: 1px; }
   .clock-label { font-size: 0.62rem; }
@@ -608,10 +640,10 @@ body.night .hero-card::before {
     gap: 6px;
   }
   .hero-icon {
-    font-size: 4.8rem;
     margin-bottom: 4px;
     filter: drop-shadow(0 6px 18px rgba(0,0,0,0.25));
   }
+  .hero-condition-icon { width: 64px; height: 64px; }
   .hero-temp {
     font-size: 5.5rem;
     font-weight: 150;
@@ -677,7 +709,7 @@ body.night .hero-card::before {
     overflow: hidden;
   }
   .detail-header { gap: 7px; }
-  .detail-emoji { font-size: 1rem; }
+  .detail-icon svg { width: 14px; height: 14px; }
   .detail-label { font-size: 0.66rem; letter-spacing: 0.8px; }
   .detail-value { font-size: 1.25rem; }
   .detail-sub { font-size: 0.72rem; }
@@ -695,7 +727,7 @@ body.night .hero-card::before {
     border-radius: 14px;
     min-width: 0;
   }
-  .sun-icon { font-size: 1.6rem; }
+  .sun-icon svg { width: 20px; height: 20px; }
   .sun-label { font-size: 0.66rem; }
   .sun-time { font-size: 1.15rem; }
 
@@ -728,7 +760,7 @@ body.night .hero-card::before {
     border-radius: 10px;
     flex-shrink: 0;
   }
-  .hourly-icon { font-size: 1.4rem; }
+  .hourly-icon svg { width: 20px; height: 20px; }
   .hourly-temp { font-size: 0.88rem; }
   .hourly-time { font-size: 0.68rem; }
   .hourly-precip { font-size: 0.62rem; }
@@ -758,10 +790,10 @@ body.night .hero-card::before {
     flex-shrink: 0;
   }
   .forecast-row-icon { 
-    font-size: 1.35rem; 
     width: 30px; 
     flex-shrink: 0;
   }
+  .forecast-row-icon svg { width: 18px; height: 18px; }
   .forecast-precip-badge { 
     width: 38px; 
     font-size: 0.68rem; 
@@ -809,7 +841,7 @@ body.night .hero-card::before {
   /* Hero — still bold, tighter */
   .hero-card { padding: 28px 18px 18px; border-radius: 14px; }
   .hero-city { font-size: 1.45rem; }
-  .hero-icon { font-size: 4rem; }
+  .hero-condition-icon { width: 52px; height: 52px; }
   .hero-temp { font-size: 4.6rem; letter-spacing: -3px; }
   .hero-temp-unit { font-size: 1.6rem; }
   .hero-right { padding-top: 14px; margin-top: 14px; }
@@ -824,7 +856,7 @@ body.night .hero-card::before {
 
   /* Hourly — smaller */
   .hourly-item { width: 56px; padding: 10px 4px; }
-  .hourly-icon { font-size: 1.25rem; }
+  .hourly-icon svg { width: 18px; height: 18px; }
 
   /* Forecast — drop bar, use slash */
   .forecast-bar-track { display: none; }
@@ -851,7 +883,7 @@ body.night .hero-card::before {
   .hero-location { flex-direction: row; align-items: baseline; gap: 8px; }
   .hero-condition { margin-bottom: 8px; }
   .hero-temp { font-size: 3rem; letter-spacing: -2px; }
-  .hero-icon { font-size: 2.4rem; }
+  .hero-condition-icon { width: 36px; height: 36px; }
   .hero-temp-row { gap: 10px; }
 
   .hero-right {

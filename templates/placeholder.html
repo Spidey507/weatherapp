@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} — WeatherCast{% endblock %}
+
+{% block content %}
+<div class="placeholder-page">
+  <div class="placeholder-icon"><i data-lucide="{{ page_lucide }}"></i></div>
+  <h2 class="placeholder-title">{{ page_title }}</h2>
+  <p class="placeholder-desc">{{ page_desc }}</p>
+  <div class="placeholder-badge">Coming Soon</div>
+</div>
+{% endblock %}

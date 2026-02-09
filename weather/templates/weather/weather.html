@@ -4,13 +4,26 @@
 {% block title %}WeatherCast — Dashboard{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'weather/css/weather.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'weather/css/weather.css' %}?v=5">
 {% endblock %}
 
 {% block content %}
+  <!-- ===== SEARCH BAR (weather-specific) ===== -->
+  <div class="weather-search">
+    <div class="search-wrapper">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search city..." autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <button class="btn-location" id="btnLocation">
+      <i data-lucide="map-pin" class="btn-icon"></i>
+      <span class="btn-location-text">My Location</span>
+    </button>
+  </div>
+
   <!-- ===== WELCOME ===== -->
   <div class="state-message" id="welcomeState">
-    <div class="state-icon">&#127758;</div>
+    <div class="state-icon"><i data-lucide="globe"></i></div>
     <h2>Check the forecast</h2>
     <p>Search for any city worldwide or allow location access to get your local weather instantly.</p>
   </div>
@@ -54,21 +67,21 @@
     <div class="details-grid" id="detailsGrid">
       <div class="detail-card card">
         <div class="detail-header">
-          <span class="detail-emoji">&#127777;&#65039;</span>
+          <span class="detail-icon"><i data-lucide="thermometer"></i></span>
           <span class="detail-label">Feels like</span>
         </div>
         <div class="detail-value" id="feelsLike">--</div>
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <span class="detail-emoji">&#128167;</span>
+          <span class="detail-icon"><i data-lucide="droplets"></i></span>
           <span class="detail-label">Humidity</span>
         </div>
         <div class="detail-value" id="humidity">--</div>
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <span class="detail-emoji">&#127788;&#65039;</span>
+          <span class="detail-icon"><i data-lucide="wind"></i></span>
           <span class="detail-label">Wind</span>
         </div>
         <div class="detail-value" id="windSpeed">--</div>
@@ -76,7 +89,7 @@
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <span class="detail-emoji">&#9728;&#65039;</span>
+          <span class="detail-icon"><i data-lucide="sun"></i></span>
           <span class="detail-label">UV Index</span>
         </div>
         <div class="detail-value" id="uvIndex">--</div>
@@ -84,14 +97,14 @@
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <span class="detail-emoji">&#9874;&#65039;</span>
+          <span class="detail-icon"><i data-lucide="gauge"></i></span>
           <span class="detail-label">Pressure</span>
         </div>
         <div class="detail-value" id="pressure">--</div>
       </div>
       <div class="detail-card card">
         <div class="detail-header">
-          <span class="detail-emoji">&#128168;</span>
+          <span class="detail-icon"><i data-lucide="flag"></i></span>
           <span class="detail-label">Max Wind</span>
         </div>
         <div class="detail-value" id="maxWind">--</div>
@@ -101,14 +114,14 @@
     <!-- Sunrise / Sunset -->
     <div class="sun-card-wrap">
       <div class="sun-card card">
-        <div class="sun-icon">&#127749;</div>
+        <div class="sun-icon"><i data-lucide="sunrise"></i></div>
         <div class="sun-info">
           <div class="sun-label">Sunrise</div>
           <div class="sun-time" id="sunrise">--:--</div>
         </div>
       </div>
       <div class="sun-card card">
-        <div class="sun-icon">&#127751;</div>
+        <div class="sun-icon"><i data-lucide="sunset"></i></div>
         <div class="sun-info">
           <div class="sun-label">Sunset</div>
           <div class="sun-time" id="sunset">--:--</div>
@@ -134,5 +147,5 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script type="module" src="{% static 'weather/js/app.js' %}"></script>
+  <script type="module" src="{% static 'weather/js/app.js' %}?v=5"></script>
 {% endblock %}

@@ -1,0 +1,12 @@
+Django>=4.2,<6.0
+djangorestframework>=3.14
+django-allauth>=0.61
+django-cors-headers>=4.3
+django-filter>=23.5
+celery>=5.3
+redis>=5.0
+django-celery-beat>=2.5
+Pillow>=10.2
+requests>=2.31
+gunicorn>=21.2
+psycopg2-binary>=2.9

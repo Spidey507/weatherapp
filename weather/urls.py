@@ -5,7 +5,7 @@ app_name = 'weather'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('api/geocode/', views.geocode, name='geocode'),
-    path('api/weather/', views.weather_data, name='weather_data'),
-    path('api/reverse-geocode/', views.reverse_geocode, name='reverse_geocode'),
+    path('weather/api/geocode/', views.geocode, name='geocode'),
+    path('weather/api/weather/', views.weather_data, name='weather_data'),
+    path('weather/api/reverse-geocode/', views.reverse_geocode, name='reverse_geocode'),
 ]

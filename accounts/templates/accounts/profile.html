@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — WeatherCast{% endblock %}
+
+{% block content %}
+<div class="placeholder-page">
+  <div class="placeholder-icon"><i data-lucide="user"></i></div>
+  <h2 class="placeholder-title">Your Profile</h2>
+  {% if user.is_authenticated %}
+    <p class="placeholder-desc">Welcome, {{ user.email }}. Activity preferences coming soon.</p>
+  {% else %}
+    <p class="placeholder-desc">Sign in to save your activity preferences and locations.</p>
+    <a href="/accounts/login/" class="placeholder-btn">Sign In</a>
+  {% endif %}
+</div>
+{% endblock %}

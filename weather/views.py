@@ -4,8 +4,8 @@ from django.http import JsonResponse
 
 
 def index(request):
-    """Serve the main weather app page."""
-    return render(request, 'weather/weather.html')
+    """Serve the main weather dashboard (Home tab)."""
+    return render(request, 'weather/weather.html', {'active_tab': 'home'})
 
 
 def geocode(request):

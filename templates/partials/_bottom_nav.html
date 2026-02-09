@@ -1,0 +1,22 @@
+<nav class="bottom-nav" id="bottomNav">
+  <a href="/" class="nav-tab{% if active_tab == 'home' %} active{% endif %}">
+    <span class="nav-icon"><i data-lucide="home"></i></span>
+    <span class="nav-label">Home</span>
+  </a>
+  <a href="/explore/" class="nav-tab{% if active_tab == 'explore' %} active{% endif %}">
+    <span class="nav-icon"><i data-lucide="compass"></i></span>
+    <span class="nav-label">Explore</span>
+  </a>
+  <a href="/log/" class="nav-tab{% if active_tab == 'log' %} active{% endif %}">
+    <span class="nav-icon"><i data-lucide="notebook-pen"></i></span>
+    <span class="nav-label">Log</span>
+  </a>
+  <a href="/alerts/" class="nav-tab{% if active_tab == 'alerts' %} active{% endif %}">
+    <span class="nav-icon"><i data-lucide="bell"></i></span>
+    <span class="nav-label">Alerts</span>
+  </a>
+  <a href="/profile/" class="nav-tab{% if active_tab == 'profile' %} active{% endif %}">
+    <span class="nav-icon"><i data-lucide="user"></i></span>
+    <span class="nav-label">Profile</span>
+  </a>
+</nav>

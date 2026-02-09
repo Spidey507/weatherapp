@@ -5,6 +5,11 @@ const motion = await import(
   'https://cdn.jsdelivr.net/npm/@motionone/dom@10.18.0/+esm'
 ).catch(() => null);
 
+/* ── Lucide helper ── */
+function renderIcons() {
+  if (window.lucide) lucide.createIcons();
+}
+
 /* ── DOM refs ── */
 const $ = (id) => document.getElementById(id);
 const searchInput   = $('searchInput');
@@ -19,41 +24,47 @@ let clockInterval = null;
 let currentTimezone = 'UTC';
 let debounceTimer = null;
 
-/* ── WMO weather codes ── */
+/* ── WMO weather codes → Lucide icon names ── */
 const WMO = {
-  0:  { d: 'Clear sky',           i: (n) => n ? '\u2600\uFE0F' : '\uD83C\uDF11' },
-  1:  { d: 'Mainly clear',        i: (n) => n ? '\uD83C\uDF24\uFE0F' : '\uD83C\uDF19' },
-  2:  { d: 'Partly cloudy',       i: () => '\u26C5' },
-  3:  { d: 'Overcast',            i: () => '\u2601\uFE0F' },
-  45: { d: 'Fog',                 i: () => '\uD83C\uDF2B\uFE0F' },
-  48: { d: 'Rime fog',            i: () => '\uD83C\uDF2B\uFE0F' },
-  51: { d: 'Light drizzle',       i: () => '\uD83C\uDF26\uFE0F' },
-  53: { d: 'Moderate drizzle',    i: () => '\uD83C\uDF26\uFE0F' },
-  55: { d: 'Dense drizzle',       i: () => '\uD83C\uDF27\uFE0F' },
-  56: { d: 'Freezing drizzle',    i: () => '\uD83C\uDF27\uFE0F' },
-  57: { d: 'Heavy freezing drizzle', i: () => '\uD83C\uDF27\uFE0F' },
-  61: { d: 'Slight rain',         i: () => '\uD83C\uDF26\uFE0F' },
-  63: { d: 'Moderate rain',       i: () => '\uD83C\uDF27\uFE0F' },
-  65: { d: 'Heavy rain',          i: () => '\uD83C\uDF27\uFE0F' },
-  66: { d: 'Freezing rain',       i: () => '\uD83C\uDF27\uFE0F' },
-  67: { d: 'Heavy freezing rain', i: () => '\uD83C\uDF27\uFE0F' },
-  71: { d: 'Light snow',          i: () => '\uD83C\uDF28\uFE0F' },
-  73: { d: 'Moderate snow',       i: () => '\uD83C\uDF28\uFE0F' },
-  75: { d: 'Heavy snow',          i: () => '\u2744\uFE0F' },
-  77: { d: 'Snow grains',         i: () => '\u2744\uFE0F' },
-  80: { d: 'Light showers',       i: () => '\uD83C\uDF26\uFE0F' },
-  81: { d: 'Moderate showers',    i: () => '\uD83C\uDF27\uFE0F' },
-  82: { d: 'Heavy showers',       i: () => '\uD83C\uDF27\uFE0F' },
-  85: { d: 'Light snow showers',  i: () => '\uD83C\uDF28\uFE0F' },
-  86: { d: 'Heavy snow showers',  i: () => '\u2744\uFE0F' },
-  95: { d: 'Thunderstorm',        i: () => '\u26C8\uFE0F' },
-  96: { d: 'Thunderstorm, hail',  i: () => '\u26C8\uFE0F' },
-  99: { d: 'Severe thunderstorm', i: () => '\u26C8\uFE0F' },
+  0:  { d: 'Clear sky',           i: (n) => n ? 'sun'            : 'moon' },
+  1:  { d: 'Mainly clear',        i: (n) => n ? 'sun'            : 'moon' },
+  2:  { d: 'Partly cloudy',       i: (n) => n ? 'cloud-sun'      : 'cloud-moon' },
+  3:  { d: 'Overcast',            i: () => 'cloud' },
+  45: { d: 'Fog',                 i: () => 'cloud-fog' },
+  48: { d: 'Rime fog',            i: () => 'cloud-fog' },
+  51: { d: 'Light drizzle',       i: () => 'cloud-drizzle' },
+  53: { d: 'Moderate drizzle',    i: () => 'cloud-drizzle' },
+  55: { d: 'Dense drizzle',       i: () => 'cloud-rain' },
+  56: { d: 'Freezing drizzle',    i: () => 'cloud-rain' },
+  57: { d: 'Heavy freezing drizzle', i: () => 'cloud-rain' },
+  61: { d: 'Slight rain',         i: () => 'cloud-drizzle' },
+  63: { d: 'Moderate rain',       i: () => 'cloud-rain' },
+  65: { d: 'Heavy rain',          i: () => 'cloud-rain-wind' },
+  66: { d: 'Freezing rain',       i: () => 'cloud-rain' },
+  67: { d: 'Heavy freezing rain', i: () => 'cloud-rain-wind' },
+  71: { d: 'Light snow',          i: () => 'cloud-snow' },
+  73: { d: 'Moderate snow',       i: () => 'cloud-snow' },
+  75: { d: 'Heavy snow',          i: () => 'snowflake' },
+  77: { d: 'Snow grains',         i: () => 'snowflake' },
+  80: { d: 'Light showers',       i: () => 'cloud-drizzle' },
+  81: { d: 'Moderate showers',    i: () => 'cloud-rain' },
+  82: { d: 'Heavy showers',       i: () => 'cloud-rain-wind' },
+  85: { d: 'Light snow showers',  i: () => 'cloud-snow' },
+  86: { d: 'Heavy snow showers',  i: () => 'snowflake' },
+  95: { d: 'Thunderstorm',        i: () => 'cloud-lightning' },
+  96: { d: 'Thunderstorm, hail',  i: () => 'cloud-lightning' },
+  99: { d: 'Severe thunderstorm', i: () => 'cloud-lightning' },
 };
 
 function wmo(code, isDay) {
-  const e = WMO[code] || { d: 'Unknown', i: () => '\uD83C\uDF10' };
+  const e = WMO[code] || { d: 'Unknown', i: () => 'cloud' };
   return { desc: e.d, icon: e.i(isDay) };
+}
+
+/** Returns an <i data-lucide> tag string for a weather condition icon */
+function weatherIcon(name, cls) {
+  const c = cls ? ` class="${cls}"` : '';
+  return `<i data-lucide="${name}"${c}></i>`;
 }
 
 /* ── Helpers ── */
@@ -108,7 +119,6 @@ function showError(msg) {
 
   if (motion) {
     const { animate } = motion;
-    /* disable CSS transition so Motion has full control */
     errorToast.style.transition = 'none';
     animate(
       errorToast,
@@ -251,40 +261,32 @@ btnLocation.addEventListener('click', () => {
 
 /* ══════════════════════════════════════════
    MOTION-POWERED ANIMATIONS
-   Showcases: animate, stagger, inView, spring easing
-   Falls back to CSS @keyframes fadeUp if CDN unavailable.
    ══════════════════════════════════════════ */
 
-/* Easing presets */
 const EASE_OUT_QUINT = [0.22, 1, 0.36, 1];
 const SPRING_BOUNCE  = [0.34, 1.56, 0.64, 1];
 
 function animateDashboardEntrance() {
-  if (!motion) return;       /* CSS fadeUp fallback if Motion unavailable */
+  if (!motion) return;
   const { animate, stagger, inView } = motion;
 
-  /* Disable the CSS fallback animation so Motion takes over */
   dashboard.style.animation = 'none';
 
-  /* 1 ── Hero card: slide up with spring overshoot */
   animate($('heroCard'),
     { opacity: [0, 1], transform: ['translateY(40px)', 'translateY(0)'] },
     { duration: 0.7, easing: SPRING_BOUNCE }
   );
 
-  /* 2 ── Detail cards: staggered cascade */
   animate(document.querySelectorAll('.detail-card'),
     { opacity: [0, 1], transform: ['translateY(24px) scale(0.96)', 'translateY(0) scale(1)'] },
     { duration: 0.5, delay: stagger(0.06, { start: 0.15 }), easing: EASE_OUT_QUINT }
   );
 
-  /* 3 ── Sun cards: staggered fade up */
   animate(document.querySelectorAll('.sun-card'),
     { opacity: [0, 1], transform: ['translateY(20px)', 'translateY(0)'] },
     { duration: 0.45, delay: stagger(0.08, { start: 0.4 }), easing: EASE_OUT_QUINT }
   );
 
-  /* 4 ── Hourly section: fade up */
   const hourlySection = document.querySelector('.hourly-section');
   if (hourlySection) {
     animate(hourlySection,
@@ -293,13 +295,11 @@ function animateDashboardEntrance() {
     );
   }
 
-  /* 5 ── Hourly items: rapid left-to-right stagger */
   animate(document.querySelectorAll('.hourly-item'),
     { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0)'] },
     { duration: 0.3, delay: stagger(0.025, { start: 0.6 }), easing: EASE_OUT_QUINT }
   );
 
-  /* 6 ── Forecast section: fade up */
   const forecastSection = document.querySelector('.forecast-section');
   if (forecastSection) {
     animate(forecastSection,
@@ -308,7 +308,6 @@ function animateDashboardEntrance() {
     );
   }
 
-  /* 7 ── Forecast rows: scroll-triggered slide-in (inView showcase) */
   document.querySelectorAll('.forecast-row').forEach((row) => {
     row.style.opacity = '0';
     inView(row, () => {
@@ -319,7 +318,6 @@ function animateDashboardEntrance() {
     }, { amount: 0.2 });
   });
 
-  /* 8 ── Forecast temperature bars: width grows on scroll */
   document.querySelectorAll('.forecast-bar-fill').forEach((bar) => {
     const target = bar.style.width;
     bar.style.width = '0%';
@@ -363,7 +361,7 @@ function render(data, city, country, timezone) {
   $('cityName').textContent = city || 'Unknown';
   $('countryName').textContent = country || '';
   const info = wmo(cur.weather_code, isDay);
-  $('currentIcon').textContent = info.icon;
+  $('currentIcon').innerHTML = weatherIcon(info.icon, 'hero-condition-icon');
   $('currentTemp').innerHTML =
     `${Math.round(cur.temperature_2m)}<span class="hero-temp-unit">&deg;C</span>`;
   $('currentCondition').textContent = info.desc;
@@ -417,9 +415,9 @@ function render(data, city, country, timezone) {
       item.className = 'hourly-item' + (i === 0 ? ' now' : '');
       item.innerHTML = `
         <div class="hourly-time">${i === 0 ? 'Now' : hh}</div>
-        <div class="hourly-icon">${hi.icon}</div>
+        <div class="hourly-icon">${weatherIcon(hi.icon, 'condition-icon')}</div>
         <div class="hourly-temp">${Math.round(hourly.temperature_2m[i])}\u00B0</div>
-        ${prec > 0 ? `<div class="hourly-precip">${prec}%</div>` : ''}`;
+        ${prec > 0 ? `<div class="hourly-precip"><i data-lucide="droplets" class="precip-icon"></i>${prec}%</div>` : ''}`;
       scroll.appendChild(item);
     }
   }
@@ -451,9 +449,9 @@ function render(data, city, country, timezone) {
     row.className = 'forecast-row';
     row.innerHTML = `
       <div class="forecast-day-name ${i === 0 ? 'today' : ''}">${name}</div>
-      <div class="forecast-row-icon">${fi.icon}</div>
+      <div class="forecast-row-icon">${weatherIcon(fi.icon, 'condition-icon')}</div>
       <div class="forecast-row-desc">${fi.desc}</div>
-      <div class="forecast-precip-badge">${prec > 0 ? '\uD83D\uDCA7' + prec + '%' : ''}</div>
+      <div class="forecast-precip-badge">${prec > 0 ? `<i data-lucide="droplets" class="precip-icon"></i>${prec}%` : ''}</div>
       <div class="forecast-temp-range">
         <span class="forecast-low-val">${lo}\u00B0</span>
         <div class="forecast-bar-track">
@@ -466,6 +464,9 @@ function render(data, city, country, timezone) {
 
   showState('weather');
 
-  /* ── Trigger Motion entrance animations ── */
+  /* Convert all Lucide <i> tags to SVGs */
+  renderIcons();
+
+  /* Trigger Motion entrance animations */
   animateDashboardEntrance();
 }
